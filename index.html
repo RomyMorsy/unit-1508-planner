@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#e9ece8">
-<meta name="planner-version" content="2026-10-11.1">
+<meta name="planner-version" content="2026-10-11.2">
 <title>Unit 1508 Furniture Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
@@ -17,7 +17,7 @@ body{margin:0}img{max-width:100%}
   --ink:#1c2220; --muted:#5b6561; --line:#cdd2cb; --grid:#e7e6dd;
   --accent:#0d6a60; --accent-soft:#d5e8e4; --on-accent:#ffffff;
   --bad:#c0352a; --bad-soft:#f6dcd8; --warn:#a86b12; --warn-soft:#f5e7cc; --ok:#2c7a4b; --ok-soft:#dcefe2;
-  --k-sleep:#9db3cf; --k-sit:#ddb084; --k-surface:#b1c294; --k-storage:#c0abd0; --k-rug:#ebe2cd; --k-other:#c0c0b5;
+  --k-sleep:#9db3cf; --k-sit:#ddb084; --k-surface:#b1c294; --k-storage:#c0abd0; --k-rug:#ebe2cd; --k-other:#c0c0b5; --k-lamp:#ecd27a;
   --piece-ink:#1c2220; --door:#7b8580; --window:#7fa7b8; --est:#8a4f1c;
   --font-ui:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -27,14 +27,14 @@ body{margin:0}img{max-width:100%}
   --ink:#e8ece9; --muted:#9aa49f; --line:#323a36; --grid:#262c29;
   --accent:#4fb3a6; --accent-soft:#1d3a36; --on-accent:#0b1412;
   --bad:#f0776b; --bad-soft:#3d1f1c; --warn:#e3a94b; --warn-soft:#3a2d17; --ok:#6cc08d; --ok-soft:#1b3326;
-  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c;
+  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c; --k-lamp:#8a7530;
   --piece-ink:#eef1ee; --door:#7d8883; --window:#5d8fa3; --est:#e0a066; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#121614; --panel:#1a1f1d; --floor:#202623; --wall:#c8d0cb; --closet:#323a36; --fixture:#3b4440;
   --ink:#e8ece9; --muted:#9aa49f; --line:#323a36; --grid:#262c29;
   --accent:#4fb3a6; --accent-soft:#1d3a36; --on-accent:#0b1412;
   --bad:#f0776b; --bad-soft:#3d1f1c; --warn:#e3a94b; --warn-soft:#3a2d17; --ok:#6cc08d; --ok-soft:#1b3326;
-  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c;
+  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c; --k-lamp:#8a7530;
   --piece-ink:#eef1ee; --door:#7d8883; --window:#5d8fa3; --est:#e0a066; color-scheme:dark}
 
 [hidden]{display:none!important}
@@ -71,7 +71,12 @@ header{display:flex;align-items:center;gap:10px;padding-block:10px 0;min-width:0
 .p-dim{font-family:var(--font-mono);font-size:4.6px;fill:var(--muted);text-anchor:middle}
 .p-clo{font-family:var(--font-mono);font-size:4.4px;fill:var(--muted);text-anchor:middle}
 .it rect,.it circle{stroke:var(--piece-ink);stroke-opacity:.55;stroke-width:.6}
-.k-sleep{fill:var(--k-sleep)} .k-sit{fill:var(--k-sit)} .k-surface{fill:var(--k-surface)} .k-storage{fill:var(--k-storage)} .k-other{fill:var(--k-other)}
+.k-sleep{fill:var(--k-sleep)} .k-sit{fill:var(--k-sit)} .k-surface{fill:var(--k-surface)} .k-storage{fill:var(--k-storage)} .k-other{fill:var(--k-other)} .k-lamp{fill:var(--k-lamp)}
+.it .bulb{fill:none;stroke:var(--piece-ink);stroke-opacity:.6;stroke-width:.5}
+.it .backline{fill:none;stroke:var(--piece-ink);stroke-opacity:.35;stroke-width:.6;pointer-events:none}
+.it path{stroke:var(--piece-ink);stroke-opacity:.55;stroke-width:.6}
+.it.bad path.body{stroke:var(--bad);stroke-width:1.4;stroke-opacity:1}
+.it.warn path.body{stroke:var(--warn);stroke-width:1.2;stroke-opacity:1}
 .k-rug{fill:var(--k-rug);fill-opacity:.85;stroke-dasharray:2 1.2}
 .it .nm{font-family:var(--font-ui);font-weight:600;fill:var(--piece-ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .it .dm{font-family:var(--font-mono);fill:var(--piece-ink);fill-opacity:.8;text-anchor:middle;dominant-baseline:central;pointer-events:none}
@@ -89,7 +94,7 @@ header{display:flex;align-items:center;gap:10px;padding-block:10px 0;min-width:0
 .dimkey span{display:flex;align-items:center;gap:8px}
 .dimkey svg{flex:none}
 .sizes{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px}
-.sizes span:nth-child(even){font-family:var(--font-mono);font-size:12.5px;text-align:right;white-space:nowrap}
+.sizes .v{font-family:var(--font-mono);font-size:12.5px;text-align:right;white-space:nowrap}
 .sizes .grp{grid-column:1/-1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
 .sel-outline{fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:3 2}
 .ray{stroke:var(--accent);stroke-width:.6}
@@ -202,13 +207,19 @@ textarea{font-family:var(--font-mono);font-size:12px;min-height:64px;resize:vert
         <div class="row">
           <div class="field" style="flex:2"><label for="cName">Name</label><input id="cName" placeholder="Our sofa"></div>
           <div class="field"><label for="cKind">Type</label>
-            <select id="cKind"><option value="sit">Seating</option><option value="sleep">Bed</option><option value="surface">Table / desk</option><option value="storage">Storage</option><option value="rug">Rug</option><option value="other">Other</option></select></div>
+            <select id="cKind"><option value="sit">Seating</option><option value="sleep">Bed</option><option value="surface">Table / desk</option><option value="storage">Storage</option><option value="rug">Rug</option><option value="lamp">Lamp</option><option value="other">Other</option></select></div>
         </div>
         <div class="row">
           <div class="field"><label for="cW">Width</label><input id="cW" class="mono" inputmode="text" placeholder="7'2&quot;"></div>
           <div class="field"><label for="cD">Depth</label><input id="cD" class="mono" inputmode="text" placeholder="38"></div>
-          <div class="field"><label for="cShape">Shape</label><select id="cShape"><option value="rect">Rectangle</option><option value="round">Round</option></select></div>
+          <div class="field"><label for="cShape">Shape</label><select id="cShape"><option value="rect">Rectangle</option><option value="round">Round</option><option value="sectional">Sectional (L)</option></select></div>
         </div>
+        <div class="row" id="cSecRow" hidden>
+          <div class="field"><label for="cCl">Chaise length</label><input id="cCl" class="mono" placeholder="65"></div>
+          <div class="field"><label for="cCw">Chaise width</label><input id="cCw" class="mono" placeholder="36"></div>
+          <div class="field"><label for="cSide">Chaise side</label><select id="cSide"><option value="left">Left</option><option value="right">Right</option></select></div>
+        </div>
+        <p class="hint" id="cSecHint" hidden>Width is the full length of the back. Depth is the regular seat depth. Chaise length is the overall depth measured along the chaise. Left or right is as you face the sofa, the way stores label LAF and RAF.</p>
         <div class="row"><button class="btn primary" id="cAdd">Add to plan</button></div>
         <div id="cMsg"></div>
       </div>
@@ -299,10 +310,11 @@ const WINDOWS = [[[12,391],[121,391]],[[127,387],[155,359]],[[164,358.5],[280,35
 const BOUNDS = {x:-28,y:-26,w:345,h:450};
 const DOOR_POLYS = DOORS.map(d => { const p=[[d.hx,d.hy]]; for(let a=Math.min(d.c,d.o);a<=Math.max(d.c,d.o);a+=6){const r=a*Math.PI/180;p.push([d.hx+d.r*Math.cos(r),d.hy+d.r*Math.sin(r)]);} return p; });
 
-const KINDS = {sleep:"Bed",sit:"Seating",surface:"Table / desk",storage:"Storage",rug:"Rug",other:"Other"};
+const KINDS = {sleep:"Bed",sit:"Seating",surface:"Table / desk",storage:"Storage",rug:"Rug",lamp:"Lamp",other:"Other"};
 const PRESETS = [
   ["Bedroom",[["King bed",76,80,"sleep"],["Queen bed",60,80,"sleep"],["Full bed",54,75,"sleep"],["Nightstand",22,16,"storage"],["Dresser",60,20,"storage"],["Tall dresser",38,20,"storage"],["Bench",48,16,"sit"]]],
-  ["Living",[["Sofa",84,38,"sit"],["Loveseat",62,36,"sit"],["Armchair",32,34,"sit"],["Coffee table",48,24,"surface"],["Side table",20,20,"surface"],["TV console",60,18,"storage"],["Bookshelf",34,13,"storage"],["Rug 8×10",120,96,"rug"],["Rug 5×8",96,60,"rug"]]],
+  ["Living",[["Sectional, chaise left",104,38,"sit","sectional",{cl:65,cw:36,side:"left"}],["Sectional, chaise right",104,38,"sit","sectional",{cl:65,cw:36,side:"right"}],["Sofa",84,38,"sit"],["Loveseat",62,36,"sit"],["Armchair",32,34,"sit"],["Coffee table",48,24,"surface"],["Side table",20,20,"surface"],["TV console",60,18,"storage"],["Bookshelf",34,13,"storage"]]],
+  ["Rugs & lighting",[["Rug 8×10",120,96,"rug"],["Rug 5×8",96,60,"rug"],["Round rug 8'",96,96,"rug","round"],["Round rug 6'",72,72,"rug","round"],["Floor lamp",12,12,"lamp","round"],["Tripod lamp",24,24,"lamp","round"]]],
   ["Dining & work",[["Dining table",60,36,"surface"],["Round table",42,42,"surface","round"],["Dining chair",19,21,"sit"],["Desk",48,24,"surface"],["Desk chair",25,25,"sit"],["Bar stool",16,16,"sit","round"]]],
 ];
 const EXAMPLE = { name:"Example layout", items:[
@@ -332,6 +344,11 @@ function parseLen(str){
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function ago(ms){ const s=(Date.now()-ms)/1000; if(s<60) return "just now"; if(s<3600) return `${Math.floor(s/60)} min ago`; if(s<86400) return `${Math.floor(s/3600)} h ago`; return new Date(ms).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
 function msg(el, text, kind="info"){ el.innerHTML = text ? `<div class="status ${kind}">${esc(text)}</div>` : ""; }
+function dimLabel(it){
+  if(it.shape==="round") return `${fmt(it.w)} ⌀`;
+  if(it.shape==="sectional") return `${fmt(it.w)} × ${fmt(it.cl)} · chaise ${it.side==="left"?"L":"R"}`;
+  return `${fmt(it.w)} × ${fmt(it.d)}`;
+}
 const ptsAttr = p => p.map(q=>q[0].toFixed(2)+","+q[1].toFixed(2)).join(" ");
 
 /* ---------- Floor mask (2 px per inch) ---------- */
@@ -347,6 +364,23 @@ let mask;
 function isFloor(px,py){ const X=Math.floor(px*MS), Y=Math.floor(py*MS); if(X<0||Y<0||X>=mW||Y>=mH) return false; return mask[(Y*mW+X)*4] > 128; }
 
 /* ---------- Piece geometry ---------- */
+// Sectional, local coords centred on its bounding box. Back runs along the top at 0°.
+// "left"/"right" = the chaise side as you face the sofa (the LAF/RAF convention stores use).
+function secLocal(it){
+  const W=it.w, L=it.cl, d=it.d, cw=it.cw, t=-L/2, l=-W/2, r=W/2, b=L/2;
+  const outline = it.side==="left"
+    ? [[l,t],[r,t],[r,t+d],[l+cw,t+d],[l+cw,b],[l,b]]
+    : [[l,t],[r,t],[r,b],[r-cw,b],[r-cw,t+d],[l,t+d]];
+  const main=[l,t,W,d], chaise = it.side==="left" ? [l,t+d,cw,L-d] : [r-cw,t+d,cw,L-d];
+  return {outline, rects:[main, chaise]};
+}
+function xf(it){ const a=it.rot*Math.PI/180, c=Math.cos(a), s=Math.sin(a); return ([u,v])=>[it.x+u*c-v*s, it.y+u*s+v*c]; }
+const rectPts = ([x,y,w,h]) => [[x,y],[x+w,y],[x+w,y+h],[x,y+h]];
+// outline: drawn shape; parts: convex pieces used for overlap and gap checks
+function geom(it){
+  if(it.shape==="sectional"){ const g=secLocal(it), T=xf(it); return {outline:g.outline.map(T), parts:g.rects.map(r=>rectPts(r).map(T))}; }
+  const P=poly(it); return {outline:P, parts:[P]};
+}
 function poly(it){
   if(it.shape==="round"){ const r=it.w/2, p=[]; for(let i=0;i<20;i++){const a=i/20*Math.PI*2;p.push([it.x+r*Math.cos(a),it.y+r*Math.sin(a)]);} return p; }
   const a=it.rot*Math.PI/180, c=Math.cos(a), s=Math.sin(a), hw=it.w/2, hd=it.d/2;
@@ -356,6 +390,9 @@ function samples(it){
   const pts=[]; const st=2;
   if(it.shape==="round"){ const r=it.w/2-0.6; for(let u=-r;u<=r+0.01;u+=st) for(let v=-r;v<=r+0.01;v+=st) if(u*u+v*v<=r*r) pts.push([it.x+u,it.y+v]);
     for(let i=0;i<32;i++){const a=i/32*Math.PI*2; pts.push([it.x+r*Math.cos(a),it.y+r*Math.sin(a)]);} return pts; }
+  if(it.shape==="sectional"){ const T=xf(it);
+    secLocal(it).rects.forEach(([x,y,w,h])=>{ const e=0.6, us=[], vs=[]; for(let u=x+e;u<x+w-e;u+=st) us.push(u); us.push(x+w-e); for(let v=y+e;v<y+h-e;v+=st) vs.push(v); vs.push(y+h-e);
+      us.forEach(u=>vs.forEach(v=>pts.push(T([u,v])))); }); return pts; }
   const a=it.rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a),hw=it.w/2-0.6,hd=it.d/2-0.6;
   const us=[],vs=[]; for(let u=-hw;u<hw;u+=st) us.push(u); us.push(hw); for(let v=-hd;v<hd;v+=st) vs.push(v); vs.push(hd);
   us.forEach(u=>vs.forEach(v=>pts.push([it.x+u*c-v*s,it.y+u*s+v*c]))); return pts;
@@ -378,7 +415,11 @@ let state = { name:"", items:[], layoutId:null, dirty:false, example:false };
 let sel = null, tab = "add";
 let status = {}; // id -> {level, why[]}
 
-function mkItem(name,w,d,kind,shape="rect",x=80,y=250,rot=0){ return {id:uid(),name,w:+w,d:shape==="round"?+w:+d,kind,shape,x,y,rot}; }
+function mkItem(name,w,d,kind,shape="rect",x=80,y=250,rot=0,extra){
+  const it={id:uid(),name,w:+w,d:shape==="round"?+w:+d,kind,shape,x,y,rot};
+  if(shape==="sectional"){ const e=extra||{}; it.cl=+e.cl||Math.max(+d+24,60); it.cw=+e.cw||36; it.side=e.side==="left"?"left":"right"; }
+  return it;
+}
 function loadExample(){ state = {name:EXAMPLE.name, items:EXAMPLE.items.map(a=>mkItem(...a)), layoutId:null, dirty:false, example:true}; }
 function persistLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function restoreLocal(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(s && Array.isArray(s.items)){ state = Object.assign({name:"",items:[],layoutId:null,dirty:false,example:false}, s); return true; } }catch(e){} return false; }
@@ -414,7 +455,7 @@ function drawPlan(){
   h += `<text class="p-room" x="232" y="76" style="font-size:5px">BATH</text>`;
   $("#gPlan").innerHTML = h;
   // legend
-  $("#legend").innerHTML = ["sleep","sit","surface","storage","rug"].map(k=>`<span><i class="sw" style="background:var(--k-${k})"></i>${KINDS[k]}</span>`).join("");
+  $("#legend").innerHTML = ["sleep","sit","surface","storage","rug","lamp"].map(k=>`<span><i class="sw" style="background:var(--k-${k})"></i>${KINDS[k]}</span>`).join("");
 }
 
 /* ---------- Dimensions ---------- */
@@ -464,16 +505,16 @@ function setDims(on){ showDims=on; try{ localStorage.setItem("fp1508.dims", on?"
 $("#dimBtn").onclick = ()=>setDims(!showDims);
 function roomSizesHTML(){
   const groups = {}; EST_DIMS.forEach(d=>{ (groups[d.room] ||= []).push(d); });
-  return `<div class="sizes">` + Object.entries(groups).map(([room,list])=>`<span class="grp">${room}</span>` + list.map(d=>`<span>${d.what}</span><span>≈${fmt(d.b-d.a)}</span>`).join("")).join("")
+  return `<div class="sizes">` + Object.entries(groups).map(([room,list])=>`<span class="grp">${room}</span>` + list.map(d=>`<span>${d.what}</span><span class="v">≈${fmt(d.b-d.a)}</span>`).join("")).join("")
     + `<span class="grp">From the plan (outside walls)</span>`
-    + `<span>Unit width</span><span>24'-1"</span><span>Unit depth</span><span>32'-9½"</span><span>Living room window wall</span><span>10'-6"</span><span>Bay window (angled)</span><span>3'-10"</span><span>Bedroom window wall</span><span>10'-10½"</span><span>Bedroom side, right wall</span><span>22'-1½"</span><span>Bath, right wall</span><span>6'-5½"</span>`
+    + `<span>Unit width</span><span class="v">24'-1"</span><span>Unit depth</span><span class="v">32'-9½"</span><span>Living room window wall</span><span class="v">10'-6"</span><span>Bay window (angled)</span><span class="v">3'-10"</span><span>Bedroom window wall</span><span class="v">10'-10½"</span><span>Bedroom side, right wall</span><span class="v">22'-1½"</span><span>Bath, right wall</span><span class="v">6'-5½"</span>`
     + `</div>`;
 }
 
 /* ---------- Evaluate fit ---------- */
 function evaluate(){
   status = {};
-  const P = {}; state.items.forEach(it=>{ P[it.id]=poly(it); status[it.id]={level:"ok",why:[]}; });
+  const P = {}; state.items.forEach(it=>{ P[it.id]=geom(it); status[it.id]={level:"ok",why:[]}; });
   state.items.forEach(it=>{
     const S = samples(it);
     if(S.some(p=>!isFloor(p[0],p[1]))) status[it.id].why.push("Runs into a wall, counter or closet");
@@ -485,7 +526,7 @@ function evaluate(){
   const solid = state.items.filter(i=>i.kind!=="rug");
   for(let i=0;i<solid.length;i++) for(let j=i+1;j<solid.length;j++){
     const a=solid[i], b=solid[j];
-    if(overlap(P[a.id],P[b.id])){ status[a.id].why.push(`Overlaps ${b.name}`); status[b.id].why.push(`Overlaps ${a.name}`); }
+    if(P[a.id].parts.some(pa=>P[b.id].parts.some(pb=>overlap(pa,pb)))){ status[a.id].why.push(`Overlaps ${b.name}`); status[b.id].why.push(`Overlaps ${a.name}`); }
   }
   Object.values(status).forEach(s=>{ s.level = s.why.some(w=>!/swing/.test(w)) ? "bad" : (s.why.length ? "warn" : "ok"); });
   return P;
@@ -493,15 +534,30 @@ function evaluate(){
 
 /* ---------- Render ---------- */
 let polys = {};
+function sectionalSVG(it, st){
+  const g=secLocal(it), d=it.d, t=-it.cl/2;
+  const path = "M"+g.outline.map(p=>p[0]+" "+p[1]).join(" L")+" Z";
+  // label sits in the long back section, whatever the rotation
+  const a=it.rot*Math.PI/180, c=Math.cos(a), s=Math.sin(a), lx=0, ly=t+d/2, ox=lx*c-ly*s, oy=lx*s+ly*c;
+  const vert = Math.abs(s)>0.7, ext = vert?[d,it.w]:[it.w,d];
+  const fs = Math.max(2.6, Math.min(7, ext[0]/(Math.max(it.name.length,3)*0.56), ext[1]/2.6));
+  const dimTxt = dimLabel(it), showDims = ext[1]>=13 && ext[0]>=30;
+  const dfs = Math.max(2.4, Math.min(fs*0.78, ext[0]/(dimTxt.length*0.62)));
+  return `<g class="it ${st==="ok"?"":st}" data-id="${it.id}" transform="translate(${it.x} ${it.y})">`
+    + `<g transform="rotate(${it.rot})"><path class="body k-${it.kind}" d="${path}"/><line class="backline" x1="${-it.w/2+2}" y1="${t+7}" x2="${it.w/2-2}" y2="${t+7}"/></g>`
+    + `<text class="nm" x="${ox.toFixed(2)}" y="${(oy-(showDims?dfs*0.6:0)).toFixed(2)}" style="font-size:${fs.toFixed(2)}px">${esc(it.name)}</text>`
+    + (showDims ? `<text class="dm" x="${ox.toFixed(2)}" y="${(oy+fs*0.65).toFixed(2)}" style="font-size:${dfs.toFixed(2)}px">${dimTxt}</text>` : "") + `</g>`;
+}
 function itemSVG(it){
   const st = status[it.id]?.level || "ok";
+  if(it.shape==="sectional") return sectionalSVG(it, st);
   const ext = (it.shape==="round") ? [it.w,it.w] : (()=>{ const a=Math.abs(Math.sin(it.rot*Math.PI/180)); return a>0.7?[it.d,it.w]:[it.w,it.d]; })();
   const fs = Math.max(2.6, Math.min(7, ext[0]/(Math.max(it.name.length,3)*0.56), ext[1]/2.6));
   const showDims = ext[1] >= 13 && ext[0] >= 18;
-  const dimTxt = it.shape==="round" ? `${fmt(it.w)} ⌀` : `${fmt(it.w)} × ${fmt(it.d)}`;
+  const dimTxt = dimLabel(it);
   const dfs = Math.max(2.4, Math.min(fs*0.78, ext[0]/(dimTxt.length*0.62)));
   const shape = it.shape==="round"
-    ? `<circle class="k-${it.kind}" cx="0" cy="0" r="${it.w/2}"/>`
+    ? `<circle class="k-${it.kind}" cx="0" cy="0" r="${it.w/2}"/>` + (it.kind==="lamp" ? `<circle class="bulb" cx="0" cy="0" r="${(it.w*0.2).toFixed(2)}"/>` : "")
     : `<g transform="rotate(${it.rot})"><rect class="k-${it.kind}" x="${-it.w/2}" y="${-it.d/2}" width="${it.w}" height="${it.d}" rx="${it.kind==="rug"?0.5:1.6}"/></g>`;
   const rugTop = it.kind==="rug" ? -ext[1]/2 + fs*1.1 + (showDims?0:0) : 0;
   const ty = rugTop + (showDims ? -dfs*0.6 : 0);
@@ -510,9 +566,9 @@ function itemSVG(it){
     + (showDims ? `<text class="dm" y="${(rugTop+fs*0.65).toFixed(2)}" style="font-size:${dfs.toFixed(2)}px">${dimTxt}</text>` : "") + `</g>`;
 }
 function rays(it){
-  const P = polys[it.id]; let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  const P = polys[it.id].outline; let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
   P.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
-  const others = state.items.filter(o=>o.id!==it.id && o.kind!=="rug" && it.kind!=="rug").map(o=>polys[o.id]);
+  const others = state.items.filter(o=>o.id!==it.id && o.kind!=="rug" && it.kind!=="rug").flatMap(o=>polys[o.id].parts);
   const cx=(x0+x1)/2, cy=(y0+y1)/2; let h="";
   [[x1,cy,1,0],[x0,cy,-1,0],[cx,y1,0,1],[cx,y0,0,-1]].forEach(([sx,sy,dx,dy])=>{
     if(!isFloor(sx+dx*0.8, sy+dy*0.8)) return;
@@ -530,7 +586,7 @@ function render(){
   $("#gRugs").innerHTML = state.items.filter(i=>i.kind==="rug").map(itemSVG).join("");
   $("#gItems").innerHTML = state.items.filter(i=>i.kind!=="rug").map(itemSVG).join("");
   const it = state.items.find(i=>i.id===sel);
-  $("#gOver").innerHTML = it ? `<polygon class="sel-outline" points="${ptsAttr(polys[it.id])}"/>` + rays(it) : "";
+  $("#gOver").innerHTML = it ? `<polygon class="sel-outline" points="${ptsAttr(polys[it.id].outline)}"/>` + rays(it) : "";
   // summary
   const bad = Object.values(status).filter(s=>s.level==="bad").length, warn = Object.values(status).filter(s=>s.level==="warn").length;
   const chip = $("#summary");
@@ -610,14 +666,22 @@ function placeNew(it){
   if(!isFloor(it.x,it.y)){ it.x=80; it.y=250; }
   state.items.push(it); sel=it.id; touch(); render(); showTab("piece");
 }
-$("#presetWrap").innerHTML = PRESETS.map(([g,list],gi)=>`<h3>${g}</h3><div class="presets">${list.map((p,i)=>`<button class="preset" data-p="${gi}.${i}"><b><i style="background:var(--k-${p[3]})"></i>${esc(p[0])}</b><small>${p[4]==="round"?fmt(p[1])+" ⌀":fmt(p[1])+" × "+fmt(p[2])}</small></button>`).join("")}</div>`).join("");
-$("#presetWrap").addEventListener("click", e=>{ const b=e.target.closest(".preset"); if(!b) return; const [g,i]=b.dataset.p.split(".").map(Number); const p=PRESETS[g][1][i]; placeNew(mkItem(p[0],p[1],p[2],p[3],p[4]||"rect")); });
-$("#cShape").onchange = ()=>{ const r=$("#cShape").value==="round"; $("#cD").disabled=r; $("label[for=cW]").textContent = r?"Diameter":"Width"; };
+$("#presetWrap").innerHTML = PRESETS.map(([g,list],gi)=>`<h3>${g}</h3><div class="presets">${list.map((p,i)=>`<button class="preset" data-p="${gi}.${i}"><b><i style="background:var(--k-${p[3]})"></i>${esc(p[0])}</b><small>${dimLabel(mkItem(p[0],p[1],p[2],p[3],p[4]||"rect",0,0,0,p[5])).replace(/ · chaise [LR]$/,"")}</small></button>`).join("")}</div>`).join("");
+$("#presetWrap").addEventListener("click", e=>{ const b=e.target.closest(".preset"); if(!b) return; const [g,i]=b.dataset.p.split(".").map(Number); const p=PRESETS[g][1][i]; placeNew(mkItem(p[0],p[1],p[2],p[3],p[4]||"rect",80,250,0,p[5])); });
+$("#cShape").onchange = ()=>{ const v=$("#cShape").value, r=v==="round", sec=v==="sectional"; $("#cD").disabled=r;
+  $("label[for=cW]").textContent = r?"Diameter":"Width"; $("label[for=cD]").textContent = sec?"Seat depth":"Depth";
+  $("#cSecRow").hidden=!sec; $("#cSecHint").hidden=!sec; if(sec) $("#cKind").value="sit"; };
 $("#cAdd").onclick = ()=>{
   const shape=$("#cShape").value, w=parseLen($("#cW").value), d= shape==="round"? w : parseLen($("#cD").value);
   if(!(w>0 && w<400) || !(d>0 && d<400)){ msg($("#cMsg"), "Enter both sizes, for example 84 or 7'0\".", "bad"); return; }
+  let extra;
+  if(shape==="sectional"){ const cl=parseLen($("#cCl").value), cw=parseLen($("#cCw").value);
+    if(!(cl>d && cl<400)){ msg($("#cMsg"), "Chaise length has to be longer than the seat depth.", "bad"); return; }
+    if(!(cw>0 && cw<w)){ msg($("#cMsg"), "Chaise width has to be narrower than the overall width.", "bad"); return; }
+    extra={cl:r05(cl), cw:r05(cw), side:$("#cSide").value}; }
   msg($("#cMsg"), "");
-  placeNew(mkItem(($("#cName").value.trim() || KINDS[$("#cKind").value]).slice(0,40), r05(w), r05(d), $("#cKind").value, shape));
+  placeNew(mkItem(($("#cName").value.trim() || (shape==="sectional"?`Sectional, chaise ${extra.side}`:KINDS[$("#cKind").value])).slice(0,40), r05(w), r05(d), $("#cKind").value, shape, 80, 250, 0, extra));
+  $("#cCl").value=""; $("#cCw").value="";
   $("#cName").value=""; $("#cW").value=""; $("#cD").value="";
 };
 
@@ -639,17 +703,24 @@ function renderPieceTab(){
       </div>
       <div class="row">
         <div class="field"><label for="sW">${it.shape==="round"?"Diameter":"Width"}</label><input id="sW" class="mono" value="${fmt(it.w)}"></div>
-        ${it.shape==="round"?"":`<div class="field"><label for="sD">Depth</label><input id="sD" class="mono" value="${fmt(it.d)}"></div>`}
+        ${it.shape==="round"?"":`<div class="field"><label for="sD">${it.shape==="sectional"?"Seat depth":"Depth"}</label><input id="sD" class="mono" value="${fmt(it.d)}"></div>`}
         <div class="field"><label for="sRot">Angle</label><input id="sRot" class="mono" value="${it.rot}°" ${it.shape==="round"?"disabled":""}></div>
       </div>
+      ${it.shape==="sectional"?`<div class="row">
+        <div class="field"><label for="sCl">Chaise length</label><input id="sCl" class="mono" value="${fmt(it.cl)}"></div>
+        <div class="field"><label for="sCw">Chaise width</label><input id="sCw" class="mono" value="${fmt(it.cw)}"></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="sFlip">Chaise on the ${it.side==="left"?"left":"right"} · switch to ${it.side==="left"?"right":"left"}</button></div>`:""}
       <div class="btnrow">
         ${it.shape==="round"?"":`<button class="btn" id="sR-90">⟲ 90°</button><button class="btn" id="sR-15">⟲ 15°</button><button class="btn" id="sR15">⟳ 15°</button><button class="btn" id="sR90">⟳ 90°</button>`}
       </div>
       <div class="btnrow"><button class="btn" id="sDup">Duplicate</button><button class="btn danger" id="sDel">Remove</button></div>`;
     $("#sName").onchange = e=>{ it.name = e.target.value.trim().slice(0,40) || KINDS[it.kind]; touch(); render(); };
     $("#sKind").onchange = e=>{ it.kind = e.target.value; touch(); render(); };
-    const sz = (id,key)=>{ const el=$(id); if(!el) return; el.onchange = ()=>{ const v=parseLen(el.value); if(v>0&&v<400){ it[key]=r05(v); if(it.shape==="round") it.d=it.w; touch(); } el.blur(); render(); }; };
-    sz("#sW","w"); sz("#sD","d");
+    const sz = (id,key)=>{ const el=$(id); if(!el) return; el.onchange = ()=>{ const v=parseLen(el.value); if(v>0&&v<400){ it[key]=r05(v); if(it.shape==="round") it.d=it.w;
+      if(it.shape==="sectional"){ it.cl=Math.max(it.cl, it.d+6); it.cw=Math.min(it.cw, it.w-6); } touch(); } el.blur(); render(); }; };
+    sz("#sW","w"); sz("#sD","d"); sz("#sCl","cl"); sz("#sCw","cw");
+    const fl=$("#sFlip"); if(fl) fl.onclick=()=>{ it.side = it.side==="left"?"right":"left"; if(/^Sectional, chaise (left|right)$/.test(it.name)) it.name=`Sectional, chaise ${it.side}`; touch(); render(); };
     const rotEl=$("#sRot"); rotEl.onchange=()=>{ const v=parseFloat(rotEl.value); if(!isNaN(v)){ it.rot=((v%360)+360)%360; if(it.rot>180) it.rot-=360; touch(); } rotEl.blur(); render(); };
     [["#sR-90",-90],["#sR-15",-15],["#sR15",15],["#sR90",90]].forEach(([id,d])=>{ const b=$(id); if(b) b.onclick=()=>rotateSel(d); });
     $("#sDup").onclick = ()=>{ const c={...it,id:uid(),x:it.x+12,y:it.y+12}; state.items.push(c); sel=c.id; touch(); render(); };
@@ -659,7 +730,7 @@ function renderPieceTab(){
     const s=status[it.id], st=wrap.querySelector(".status"); if(st){ st.className="status "+(s.level==="bad"?"bad":s.level==="warn"?"warn":"ok"); st.textContent = s.why.length ? s.why.join(". ")+"." : "Fits. Nothing in the way."; }
   }
   const list=$("#pieceList");
-  list.innerHTML = state.items.length ? state.items.map(i=>`<div class="li ${i.id===sel?"current":""}" data-id="${i.id}" role="button" tabindex="0"><span class="dot ${status[i.id]?.level||"ok"}"></span><div class="meta"><b>${esc(i.name)}</b><small>${KINDS[i.kind]}</small></div><span class="dimtxt">${i.shape==="round"?fmt(i.w)+" ⌀":fmt(i.w)+" × "+fmt(i.d)}</span></div>`).join("") : `<div class="empty">No pieces yet. Add some from the Add tab.</div>`;
+  list.innerHTML = state.items.length ? state.items.map(i=>`<div class="li ${i.id===sel?"current":""}" data-id="${i.id}" role="button" tabindex="0"><span class="dot ${status[i.id]?.level||"ok"}"></span><div class="meta"><b>${esc(i.name)}</b><small>${KINDS[i.kind]}</small></div><span class="dimtxt">${dimLabel(i)}</span></div>`).join("") : `<div class="empty">No pieces yet. Add some from the Add tab.</div>`;
 }
 $("#pieceList").addEventListener("click", e=>{ const r=e.target.closest(".li[data-id]"); if(!r) return; sel=r.dataset.id; render(); });
 $("#pieceList").addEventListener("keydown", e=>{ if(e.key==="Enter"){ const r=e.target.closest(".li[data-id]"); if(r){ sel=r.dataset.id; render(); } } });
@@ -672,7 +743,7 @@ function storeSaved(){ try{ localStorage.setItem(SAVED_KEY, JSON.stringify(saved
 const lName=$("#lName");
 function syncNameField(){ if(document.activeElement!==lName) lName.value = state.name; }
 lName.oninput = ()=>{ state.name = lName.value.slice(0,60); touch(); $("#sub").textContent = `${state.name||"Untitled layout"} · ${state.items.length} pieces`; };
-function cleanItems(){ return state.items.map(({id,name,w,d,kind,shape,x,y,rot})=>({id,name,w,d,kind,shape,x,y,rot})); }
+function cleanItems(){ return state.items.map(({id,name,w,d,kind,shape,x,y,rot,cl,cw,side})=>shape==="sectional"?{id,name,w,d,kind,shape,x,y,rot,cl,cw,side}:{id,name,w,d,kind,shape,x,y,rot}); }
 function renderSaved(){
   const L=$("#savedList");
   if(!saved.length){ L.innerHTML = `<div class="empty">Nothing saved on this device yet. Name this layout above and tap Save. To get a layout to someone else, use Send layout link below.</div>`; return; }
@@ -701,9 +772,9 @@ $("#lSave").onclick=()=>save(false); $("#lSaveNew").onclick=()=>save(true);
 $("#lNew").onclick=()=>{ state={name:"",items:[],layoutId:null,dirty:false,example:false}; sel=null; persistLocal(); syncNameField(); render(); renderSaved(); msg($("#lMsg"),"Blank plan. Add pieces from the Add tab.","info"); };
 
 /* ---------- Share code ---------- */
-function encode(){ const o={n:state.name, i:state.items.map(i=>[i.name,i.w,i.d,i.kind,i.shape==="round"?1:0,i.x,i.y,i.rot])}; return "FP1:"+btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+function encode(){ const o={n:state.name, i:state.items.map(i=>{ const a=[i.name,i.w,i.d,i.kind,i.shape==="round"?1:i.shape==="sectional"?2:0,i.x,i.y,i.rot]; if(i.shape==="sectional") a.push(i.cl,i.cw,i.side==="left"?"L":"R"); return a; })}; return "FP1:"+btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 function decode(s){ s=s.trim(); const h=s.indexOf("#l="); if(h>=0) s="FP1:"+decodeURIComponent(s.slice(h+3)); if(!s.startsWith("FP1:")) throw 0; const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(4).replace(/\s+/g,""))))); if(!Array.isArray(o.i)) throw 0;
-  return {name:String(o.n||"Shared layout").slice(0,60), items:o.i.map(a=>mkItem(String(a[0]).slice(0,40),+a[1],+a[2],KINDS[a[3]]?a[3]:"other",a[4]?"round":"rect",+a[5],+a[6],+a[7]||0))}; }
+  return {name:String(o.n||"Shared layout").slice(0,60), items:o.i.map(a=>mkItem(String(a[0]).slice(0,40),+a[1],+a[2],KINDS[a[3]]?a[3]:"other",a[4]===2?"sectional":a[4]?"round":"rect",+a[5],+a[6],+a[7]||0, a[4]===2?{cl:+a[8],cw:+a[9],side:a[10]==="L"?"left":"right"}:undefined))}; }
 function layoutLink(){ return location.origin + location.pathname + "#l=" + encodeURIComponent(encode().slice(4)); }
 $("#exCode").onclick = async ()=>{
   const link=layoutLink();
@@ -722,7 +793,7 @@ const EXPORT_CSS = `
 .p-wall{fill:#2a302d}.p-floor{fill:#f7f6f0}.p-closet{fill:#d6d9d2}.p-fix{fill:#c5cbc4;stroke:#5b6561;stroke-width:.4}.p-fixline{fill:none;stroke:#5b6561;stroke-width:.5}
 .p-grid{stroke:#e7e6dd;stroke-width:.35}.p-door{fill:none;stroke:#7b8580;stroke-width:.6;stroke-dasharray:2 1.6}.p-leaf{stroke:#7b8580;stroke-width:1.2}.p-win{stroke:#7fa7b8;stroke-width:1.6}
 text{font-family:Helvetica,Arial,sans-serif}.p-room{font-weight:700;font-size:7px;letter-spacing:.12em;fill:#5b6561;text-anchor:middle}.p-dim,.p-clo{font-size:4.5px;fill:#5b6561;text-anchor:middle}
-.it rect,.it circle{stroke:#1c2220;stroke-opacity:.55;stroke-width:.6}.k-sleep{fill:#9db3cf}.k-sit{fill:#ddb084}.k-surface{fill:#b1c294}.k-storage{fill:#c0abd0}.k-other{fill:#c0c0b5}.k-rug{fill:#ebe2cd;stroke-dasharray:2 1.2}
+.it rect,.it circle{stroke:#1c2220;stroke-opacity:.55;stroke-width:.6}.k-sleep{fill:#9db3cf}.k-sit{fill:#ddb084}.k-surface{fill:#b1c294}.k-storage{fill:#c0abd0}.k-other{fill:#c0c0b5}.k-lamp{fill:#ecd27a}.it path{stroke:#1c2220;stroke-opacity:.55;stroke-width:.6}.it .backline{fill:none;stroke:#1c2220;stroke-opacity:.35;stroke-width:.6}.it .bulb{fill:none;stroke:#1c2220;stroke-opacity:.6;stroke-width:.5}.it.bad path.body{stroke:#c0352a;stroke-width:1.4;stroke-opacity:1}.k-rug{fill:#ebe2cd;stroke-dasharray:2 1.2}
 .it .nm{font-weight:700;fill:#1c2220;text-anchor:middle;dominant-baseline:central}.it .dm{fill:#1c2220;fill-opacity:.8;text-anchor:middle;dominant-baseline:central}
 .it.bad rect,.it.bad circle{stroke:#c0352a;stroke-width:1.4;stroke-opacity:1}.it.warn rect,.it.warn circle{stroke:#a86b12;stroke-width:1.2;stroke-opacity:1}
 .d-line{stroke:#1c2220;stroke-width:.45}.d-tick{stroke:#1c2220;stroke-width:.8}.d-txt{font-size:5px;fill:#1c2220;text-anchor:middle}
@@ -733,7 +804,7 @@ function buildExportSVG(){
   const rows = Math.ceil(state.items.length/cols);
   const X0=B.x, Y0=B.y-top, W=B.w, H=top+B.h+6+rows*rowH+8;
   let list=""; state.items.forEach((it,i)=>{ const c=i%cols, r=Math.floor(i/cols); const s=status[it.id]; const x=X0+8+c*(W/2), y=B.y+B.h+8+r*rowH;
-    list += `<text class="${s.level==="bad"?"lnb":"ln"}" x="${x}" y="${y}">${esc(it.name)}  ${it.shape==="round"?fmt(it.w)+" ⌀":fmt(it.w)+" × "+fmt(it.d)}${s.level!=="ok"?"  (check fit)":""}</text>`; });
+    list += `<text class="${s.level==="bad"?"lnb":"ln"}" x="${x}" y="${y}">${esc(it.name)}  ${dimLabel(it)}${s.level!=="ok"?"  (check fit)":""}</text>`; });
   const date = new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${X0} ${Y0} ${W} ${H}" width="${W*4}" height="${H*4}"><style>${EXPORT_CSS}</style>
     <rect x="${X0}" y="${Y0}" width="${W}" height="${H}" fill="#ffffff"/>
