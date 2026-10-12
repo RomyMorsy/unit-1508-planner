@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e9ece8">
+<title>Unit 1508 Furniture Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}img{max-width:100%}
+/* Layout: drafting table. Plan fills the stage; tools live in a bottom sheet on phones, a right rail on desktop. */
+:root{
+  --paper:#e9ece8; --panel:#fbfbf8; --floor:#f7f6f0; --wall:#2a302d; --closet:#d6d9d2; --fixture:#c5cbc4;
+  --ink:#1c2220; --muted:#5b6561; --line:#cdd2cb; --grid:#e7e6dd;
+  --accent:#0d6a60; --accent-soft:#d5e8e4; --on-accent:#ffffff;
+  --bad:#c0352a; --bad-soft:#f6dcd8; --warn:#a86b12; --warn-soft:#f5e7cc; --ok:#2c7a4b; --ok-soft:#dcefe2;
+  --k-sleep:#9db3cf; --k-sit:#ddb084; --k-surface:#b1c294; --k-storage:#c0abd0; --k-rug:#ebe2cd; --k-other:#c0c0b5;
+  --piece-ink:#1c2220; --door:#7b8580; --window:#7fa7b8; --est:#8a4f1c;
+  --font-ui:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#121614; --panel:#1a1f1d; --floor:#202623; --wall:#c8d0cb; --closet:#323a36; --fixture:#3b4440;
+  --ink:#e8ece9; --muted:#9aa49f; --line:#323a36; --grid:#262c29;
+  --accent:#4fb3a6; --accent-soft:#1d3a36; --on-accent:#0b1412;
+  --bad:#f0776b; --bad-soft:#3d1f1c; --warn:#e3a94b; --warn-soft:#3a2d17; --ok:#6cc08d; --ok-soft:#1b3326;
+  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c;
+  --piece-ink:#eef1ee; --door:#7d8883; --window:#5d8fa3; --est:#e0a066; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#121614; --panel:#1a1f1d; --floor:#202623; --wall:#c8d0cb; --closet:#323a36; --fixture:#3b4440;
+  --ink:#e8ece9; --muted:#9aa49f; --line:#323a36; --grid:#262c29;
+  --accent:#4fb3a6; --accent-soft:#1d3a36; --on-accent:#0b1412;
+  --bad:#f0776b; --bad-soft:#3d1f1c; --warn:#e3a94b; --warn-soft:#3a2d17; --ok:#6cc08d; --ok-soft:#1b3326;
+  --k-sleep:#4b6688; --k-sit:#8c6541; --k-surface:#5e7345; --k-storage:#6b5786; --k-rug:#3b382e; --k-other:#53544c;
+  --piece-ink:#eef1ee; --door:#7d8883; --window:#5d8fa3; --est:#e0a066; color-scheme:dark}
+
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-ui);font-size:15px;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:flex;flex-direction:column;padding-inline:16px;padding-block:0 16px;gap:10px}
+header{display:flex;align-items:center;gap:10px;padding-block:10px 0;min-width:0}
+.brand{display:flex;flex-direction:column;min-width:0;flex:1}
+.brand h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .sub{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-family:var(--font-mono);font-size:11.5px;padding:4px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.warn{background:var(--warn-soft);color:var(--warn)}
+.iconbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:focus-visible,.btn:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.preset:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.stage{position:relative;width:100%;aspect-ratio:345/450;max-height:78vh;border:1px solid var(--line);border-radius:10px;background:var(--floor);overflow:hidden}
+#plan{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.zoom .iconbtn{font-family:var(--font-mono);font-size:16px}
+.legend{position:absolute;left:8px;bottom:8px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;max-width:calc(100% - 60px)}
+.legend span{font-family:var(--font-mono);font-size:10.5px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;display:flex;align-items:center;gap:5px;color:var(--muted)}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+/* plan svg */
+.p-wall{fill:var(--wall)} .p-floor{fill:var(--floor)} .p-closet{fill:var(--closet)} .p-fix{fill:var(--fixture);stroke:var(--muted);stroke-width:.4}
+.p-fixline{fill:none;stroke:var(--muted);stroke-width:.5}
+.p-grid{stroke:var(--grid);stroke-width:.35}
+.p-door{fill:none;stroke:var(--door);stroke-width:.6;stroke-dasharray:2 1.6}
+.p-leaf{stroke:var(--door);stroke-width:1.2}
+.p-win{stroke:var(--window);stroke-width:1.6}
+.p-room{font-family:var(--font-ui);font-weight:600;font-size:7px;letter-spacing:.12em;fill:var(--muted);text-anchor:middle}
+.p-dim{font-family:var(--font-mono);font-size:4.6px;fill:var(--muted);text-anchor:middle}
+.p-clo{font-family:var(--font-mono);font-size:4.4px;fill:var(--muted);text-anchor:middle}
+.it rect,.it circle{stroke:var(--piece-ink);stroke-opacity:.55;stroke-width:.6}
+.k-sleep{fill:var(--k-sleep)} .k-sit{fill:var(--k-sit)} .k-surface{fill:var(--k-surface)} .k-storage{fill:var(--k-storage)} .k-other{fill:var(--k-other)}
+.k-rug{fill:var(--k-rug);fill-opacity:.85;stroke-dasharray:2 1.2}
+.it .nm{font-family:var(--font-ui);font-weight:600;fill:var(--piece-ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.it .dm{font-family:var(--font-mono);fill:var(--piece-ink);fill-opacity:.8;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.it{cursor:grab}
+.it.bad rect,.it.bad circle{stroke:var(--bad);stroke-width:1.4;stroke-opacity:1}
+.it.warn rect,.it.warn circle{stroke:var(--warn);stroke-width:1.2;stroke-opacity:1}
+.d-line{stroke:var(--ink);stroke-width:.45}
+.d-tick{stroke:var(--ink);stroke-width:.8}
+.d-txt{font-family:var(--font-mono);font-size:5px;font-weight:500;fill:var(--ink);text-anchor:middle}
+.d-est{stroke:var(--est);stroke-width:.45;stroke-dasharray:1.6 1.2}
+.d-est-tick{stroke:var(--est);stroke-width:.8}
+.d-est-txt{font-family:var(--font-mono);font-size:4.4px;font-weight:500;fill:var(--est);text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--floor);stroke-width:2px;stroke-linejoin:round}
+#dimBtn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.dimkey{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.dimkey span{display:flex;align-items:center;gap:8px}
+.dimkey svg{flex:none}
+.sizes{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px}
+.sizes span:nth-child(even){font-family:var(--font-mono);font-size:12.5px;text-align:right;white-space:nowrap}
+.sizes .grp{grid-column:1/-1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.sel-outline{fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:3 2}
+.ray{stroke:var(--accent);stroke-width:.6}
+.ray-cap{stroke:var(--accent);stroke-width:.6}
+.ray-lbl{font-family:var(--font-mono);font-size:4.8px;font-weight:500;fill:var(--accent);text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--floor);stroke-width:2.2px;stroke-linejoin:round}
+
+/* panel */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+@media (max-width:599px){.legend{display:none}}
+.tabs{display:flex;align-items:center;gap:2px;padding:6px;border-bottom:1px solid var(--line)}
+.tab{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.collapse{width:34px;height:34px;border:0;background:transparent;cursor:pointer;color:var(--muted);flex:none;border-radius:8px}
+.pbody{overflow:auto;padding:12px 14px 14px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.panel.min .pbody{display:none}
+h3{margin:0;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.section{display:flex;flex-direction:column;gap:8px}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.preset{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--floor);cursor:pointer;text-align:left;min-width:0}
+.preset b{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:flex;align-items:center;gap:6px}
+.preset small{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.preset i,.sw{width:8px;height:8px;border-radius:2px;flex:none;display:inline-block}
+.preset:hover{border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:90px}
+.field label{font-size:12px;color:var(--muted)}
+.field input,.field select,textarea{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--floor);font-size:16px}
+.field input.mono{font-family:var(--font-mono);font-size:15px}
+textarea{font-family:var(--font-mono);font-size:12px;min-height:64px;resize:vertical}
+.btn{border:1px solid var(--line);background:var(--floor);padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--bad)}
+.btn.danger.armed{background:var(--bad);border-color:var(--bad);color:var(--panel)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.hint{font-size:13px;color:var(--muted);margin:0;line-height:1.45;max-width:62ch}
+.status{font-size:13px;padding:8px 10px;border-radius:8px;line-height:1.4}
+.status.ok{background:var(--ok-soft);color:var(--ok)} .status.bad{background:var(--bad-soft);color:var(--bad)} .status.warn{background:var(--warn-soft);color:var(--warn)} .status.info{background:var(--accent-soft);color:var(--accent)}
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-top:1px solid var(--line);min-width:0}
+.li:first-child{border-top:0}
+.li .meta{flex:1;min-width:0;display:flex;flex-direction:column}
+.li .meta b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .meta small{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li.current{background:var(--accent-soft)}
+.pieces .li{cursor:pointer}
+.pieces .li .dimtxt{font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)} .dot.warn{background:var(--warn)}
+.empty{padding:14px;font-size:13px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;padding:16px;z-index:10}
+.modal .card{background:var(--panel);border-radius:12px;padding:16px;max-width:560px;width:100%;max-height:90%;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.modal img{width:100%;border:1px solid var(--line);border-radius:8px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);background:var(--panel);border-radius:12px 12px 0 0;z-index:2}
+@media (min-width:900px){
+  body{overflow:hidden}
+  .app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 370px;grid-template-rows:auto minmax(0,1fr);padding-block:0 16px;column-gap:16px;row-gap:8px}
+  .stage{aspect-ratio:auto;max-height:none;height:auto;min-height:0}
+  header{grid-column:1/-1}
+  .panel{grid-column:2;grid-row:2;max-height:none}
+  .collapse{display:none}
+  .tabs{position:static}
+}
+@media (prefers-reduced-motion:no-preference){.tab,.btn,.preset{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1 id="title">Unit 1508 Furniture Planner</h1>
+      <div class="sub" id="sub">1 2nd St · 1 BR · approx. 743 sf</div>
+    </div>
+    <span class="chip ok" id="summary" role="status">All clear</span>
+    <button class="iconbtn" id="infoBtn" aria-label="About the measurements" title="About the measurements">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7v4.2M8 4.6v.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+
+  <div class="stage" id="stage">
+    <svg id="plan" xmlns="http://www.w3.org/2000/svg" viewBox="-28 -26 345 450" preserveAspectRatio="xMidYMid meet" aria-label="Floor plan of Unit 1508 with furniture">
+      <g id="gPlan"></g><g id="gRugs"></g><g id="gItems"></g><g id="gDims"></g><g id="gOver"></g>
+    </svg>
+    <div class="zoom">
+      <button class="iconbtn" id="zIn" aria-label="Zoom in">+</button>
+      <button class="iconbtn" id="zOut" aria-label="Zoom out">−</button>
+      <button class="iconbtn" id="dimBtn" aria-pressed="true" aria-label="Show dimensions" title="Show or hide dimensions">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="5" width="14" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 5v2.5M7 5v1.5M10 5v2.5M13 5v1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+      <button class="iconbtn" id="zFit" aria-label="Fit plan" title="Fit plan">
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      </button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <section class="panel" id="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-add" aria-selected="true" data-tab="add">Add</button>
+      <button class="tab" role="tab" id="t-piece" aria-selected="false" data-tab="piece">Pieces</button>
+      <button class="tab" role="tab" id="t-lay" aria-selected="false" data-tab="lay">Layouts</button>
+    </div>
+
+    <div class="pbody" id="p-add">
+      <div class="section" id="presetWrap"></div>
+      <div class="section">
+        <h3>Custom piece</h3>
+        <p class="hint">Type sizes as 74, 6'2", 6' 2 or 188cm. Width runs left to right, depth front to back.</p>
+        <div class="row">
+          <div class="field" style="flex:2"><label for="cName">Name</label><input id="cName" placeholder="Our sofa"></div>
+          <div class="field"><label for="cKind">Type</label>
+            <select id="cKind"><option value="sit">Seating</option><option value="sleep">Bed</option><option value="surface">Table / desk</option><option value="storage">Storage</option><option value="rug">Rug</option><option value="other">Other</option></select></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="cW">Width</label><input id="cW" class="mono" inputmode="text" placeholder="7'2&quot;"></div>
+          <div class="field"><label for="cD">Depth</label><input id="cD" class="mono" inputmode="text" placeholder="38"></div>
+          <div class="field"><label for="cShape">Shape</label><select id="cShape"><option value="rect">Rectangle</option><option value="round">Round</option></select></div>
+        </div>
+        <div class="row"><button class="btn primary" id="cAdd">Add to plan</button></div>
+        <div id="cMsg"></div>
+      </div>
+    </div>
+
+    <div class="pbody" id="p-piece" hidden>
+      <div class="section" id="selWrap"></div>
+      <div class="section">
+        <h3>Room sizes</h3>
+        <div class="dimkey">
+          <span><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" style="stroke:var(--ink)" stroke-width="1.2"/></svg>Printed on the developer plan, measured to outside walls</span>
+          <span><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" style="stroke:var(--est)" stroke-width="1.2" stroke-dasharray="3 2"/></svg>≈ Estimated usable space inside the walls</span>
+        </div>
+        <div id="roomSizes"></div>
+      </div>
+      <div class="section">
+        <h3>On the plan</h3>
+        <div class="list pieces" id="pieceList"></div>
+      </div>
+    </div>
+
+    <div class="pbody" id="p-lay" hidden>
+      <div class="section">
+        <h3>This layout</h3>
+        <div class="row">
+          <div class="field" style="flex:3"><label for="lName">Name</label><input id="lName"></div>
+        </div>
+        <div class="btnrow">
+          <button class="btn primary" id="lSave">Save</button>
+          <button class="btn" id="lSaveNew">Save as new</button>
+          <button class="btn" id="lNew">Start blank</button>
+        </div>
+        <div id="lMsg"></div>
+      </div>
+      <div class="section">
+        <h3>Saved layouts</h3>
+        <div class="list" id="savedList"><div class="empty">Loading saved layouts…</div></div>
+      </div>
+      <div class="section">
+        <h3>Send it</h3>
+        <p class="hint">Send a link that opens this exact layout on her phone, or download a picture of the plan with every piece and its size listed.</p>
+        <div class="btnrow">
+          <button class="btn" id="exImg">Download image</button>
+          <button class="btn primary" id="exCode">Send layout link</button>
+        </div>
+        <div class="field"><label for="imCode">Or paste a layout link or code</label><textarea id="imCode" spellcheck="false" placeholder="https://…#l=…"></textarea></div>
+        <div class="btnrow"><button class="btn" id="imBtn">Open from code</button></div>
+        <div id="xMsg"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="card" id="modalCard"></div>
+</div>
+
+<div id="errBar" hidden style="position:fixed;left:16px;right:16px;bottom:16px;z-index:20;padding:10px 12px;border-radius:8px;background:var(--bad-soft);color:var(--bad);font-size:13px"></div>
+<script>
+window.addEventListener("error", e=>{ const b=document.getElementById("errBar"); if(b){ b.hidden=false; b.textContent="Something broke on this device: "+(e.message||"unknown error")+". Send a screenshot of this message."; } });
+(() => {
+"use strict";
+/* ---------- Geometry (inches). Origin = top-left outside corner of the unit. ---------- */
+const OUTER = [[0,0],[289,0],[289,361.5],[158.5,361.5],[126,394],[0,394]];
+const FLOORS = [
+  // kitchen + entry + living + hall
+  [[6,6],[148,6],[148,118],[199,118],[199,100],[240,100],[240,117],[216,117],[216,153],[153.5,153],[153.5,358],[123.5,388],[6,388]],
+  // bedroom
+  [[158.5,157],[241,157],[241,188],[283,188],[283,355.5],[158.5,355.5]],
+  // bath
+  [[203,6],[283,6],[283,96],[203,96]],
+  // door thresholds
+  [[170,152],[203,152],[203,158],[170,158]],
+  [[204,95],[238,95],[238,101],[204,101]],
+  [[104,0],[137,0],[137,7],[104,7]],
+];
+const CLOSETS = [ {x:150,y:8,w:46,h:52,t:"CLO"}, {x:153,y:68,w:44,h:48,t:"W/D"}, {x:218,y:119,w:63,h:32,t:"CLO"}, {x:243,y:159,w:38,h:27,t:"CLO"} ];
+const FIXTURES = [ // blocking
+  {x:6,y:6,w:93,h:25,kind:"counter"}, {x:99,y:6,w:4,h:22,kind:"wall"}, {x:6,y:92,w:90,h:26,kind:"counter"},
+  {x:207,y:8,w:22,h:28,kind:"toilet"}, {x:231,y:8,w:24,h:21,kind:"vanity"}, {x:253,y:34,w:30,h:60,kind:"tub"},
+];
+const DOORS = [
+  {hx:138,hy:6,r:33,c:180,o:90,name:"entry door"},
+  {hx:170,hy:157,r:33,c:0,o:90,name:"bedroom door"},
+  {hx:238,hy:100,r:34,c:180,o:270,name:"bath door"},
+];
+const WINDOWS = [[[12,391],[121,391]],[[127,387],[155,359]],[[164,358.5],[280,358.5]]];
+const BOUNDS = {x:-28,y:-26,w:345,h:450};
+const DOOR_POLYS = DOORS.map(d => { const p=[[d.hx,d.hy]]; for(let a=Math.min(d.c,d.o);a<=Math.max(d.c,d.o);a+=6){const r=a*Math.PI/180;p.push([d.hx+d.r*Math.cos(r),d.hy+d.r*Math.sin(r)]);} return p; });
+
+const KINDS = {sleep:"Bed",sit:"Seating",surface:"Table / desk",storage:"Storage",rug:"Rug",other:"Other"};
+const PRESETS = [
+  ["Bedroom",[["King bed",76,80,"sleep"],["Queen bed",60,80,"sleep"],["Full bed",54,75,"sleep"],["Nightstand",22,16,"storage"],["Dresser",60,20,"storage"],["Tall dresser",38,20,"storage"],["Bench",48,16,"sit"]]],
+  ["Living",[["Sofa",84,38,"sit"],["Loveseat",62,36,"sit"],["Armchair",32,34,"sit"],["Coffee table",48,24,"surface"],["Side table",20,20,"surface"],["TV console",60,18,"storage"],["Bookshelf",34,13,"storage"],["Rug 8×10",120,96,"rug"],["Rug 5×8",96,60,"rug"]]],
+  ["Dining & work",[["Dining table",60,36,"surface"],["Round table",42,42,"surface","round"],["Dining chair",19,21,"sit"],["Desk",48,24,"surface"],["Desk chair",25,25,"sit"],["Bar stool",16,16,"sit","round"]]],
+];
+const EXAMPLE = { name:"Example layout", items:[
+  ["Queen bed",60,80,"sleep","rect",243,270,90],["Nightstand",22,16,"storage","rect",275,229,90],["Nightstand",22,16,"storage","rect",275,311,90],
+  ["Dresser",60,20,"storage","rect",168.5,270,90],
+  ["Rug 5×8",96,60,"rug","rect",72,268,90],["Sofa",84,38,"sit","rect",25,268,90],["Coffee table",48,24,"surface","rect",68,268,90],
+  ["TV console",60,18,"storage","rect",144.5,268,90],["Round table",42,42,"surface","round",62,168,0],["Armchair",32,34,"sit","rect",104,342,-45],
+]};
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2,10);
+const r05 = v => Math.round(v*2)/2;
+function fmt(inches){
+  const v = r05(Math.abs(inches)); const ft = Math.floor(v/12); let inch = v - ft*12;
+  const s = (inch%1) ? `${Math.floor(inch)}½` : `${inch}`;
+  return ft ? `${ft}'-${s}"` : `${s}"`;
+}
+function parseLen(str){
+  if(str==null) return NaN; let s = String(str).trim().toLowerCase().replace(/[’′]/g,"'").replace(/[”″]/g,'"').replace(/½/g,".5");
+  if(!s) return NaN;
+  let m = s.match(/^(\d+(?:\.\d+)?)\s*cm$/); if(m) return +m[1]/2.54;
+  m = s.match(/^(\d+(?:\.\d+)?)\s*(?:'|ft|feet)\s*-?\s*(?:(\d+(?:\.\d+)?)\s*(?:"|in|inches)?)?$/); if(m) return (+m[1])*12 + (m[2]?+m[2]:0);
+  m = s.match(/^(\d+(?:\.\d+)?)\s*(?:"|in|inches)?$/); if(m) return +m[1];
+  return NaN;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function ago(ms){ const s=(Date.now()-ms)/1000; if(s<60) return "just now"; if(s<3600) return `${Math.floor(s/60)} min ago`; if(s<86400) return `${Math.floor(s/3600)} h ago`; return new Date(ms).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function msg(el, text, kind="info"){ el.innerHTML = text ? `<div class="status ${kind}">${esc(text)}</div>` : ""; }
+const ptsAttr = p => p.map(q=>q[0].toFixed(2)+","+q[1].toFixed(2)).join(" ");
+
+/* ---------- Floor mask (2 px per inch) ---------- */
+const MS = 2, mW = 290*MS, mH = 395*MS;
+let mask;
+(function buildMask(){
+  const c = document.createElement("canvas"); c.width=mW; c.height=mH; const x = c.getContext("2d");
+  x.fillStyle="#000"; x.fillRect(0,0,mW,mH); x.fillStyle="#fff";
+  FLOORS.forEach(poly=>{ x.beginPath(); poly.forEach((p,i)=> i? x.lineTo(p[0]*MS,p[1]*MS) : x.moveTo(p[0]*MS,p[1]*MS)); x.closePath(); x.fill(); });
+  x.fillStyle="#000"; FIXTURES.forEach(f=>x.fillRect(f.x*MS,f.y*MS,f.w*MS,f.h*MS));
+  mask = x.getImageData(0,0,mW,mH).data;
+})();
+function isFloor(px,py){ const X=Math.floor(px*MS), Y=Math.floor(py*MS); if(X<0||Y<0||X>=mW||Y>=mH) return false; return mask[(Y*mW+X)*4] > 128; }
+
+/* ---------- Piece geometry ---------- */
+function poly(it){
+  if(it.shape==="round"){ const r=it.w/2, p=[]; for(let i=0;i<20;i++){const a=i/20*Math.PI*2;p.push([it.x+r*Math.cos(a),it.y+r*Math.sin(a)]);} return p; }
+  const a=it.rot*Math.PI/180, c=Math.cos(a), s=Math.sin(a), hw=it.w/2, hd=it.d/2;
+  return [[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(([u,v])=>[it.x+u*c-v*s, it.y+u*s+v*c]);
+}
+function samples(it){
+  const pts=[]; const st=2;
+  if(it.shape==="round"){ const r=it.w/2-0.6; for(let u=-r;u<=r+0.01;u+=st) for(let v=-r;v<=r+0.01;v+=st) if(u*u+v*v<=r*r) pts.push([it.x+u,it.y+v]);
+    for(let i=0;i<32;i++){const a=i/32*Math.PI*2; pts.push([it.x+r*Math.cos(a),it.y+r*Math.sin(a)]);} return pts; }
+  const a=it.rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a),hw=it.w/2-0.6,hd=it.d/2-0.6;
+  const us=[],vs=[]; for(let u=-hw;u<hw;u+=st) us.push(u); us.push(hw); for(let v=-hd;v<hd;v+=st) vs.push(v); vs.push(hd);
+  us.forEach(u=>vs.forEach(v=>pts.push([it.x+u*c-v*s,it.y+u*s+v*c]))); return pts;
+}
+function inPoly(pt,P){ let ins=false; for(let i=0,j=P.length-1;i<P.length;j=i++){ const [xi,yi]=P[i],[xj,yj]=P[j]; if(((yi>pt[1])!==(yj>pt[1])) && (pt[0] < (xj-xi)*(pt[1]-yi)/(yj-yi)+xi)) ins=!ins; } return ins; }
+function overlap(A,B){
+  for(const P of [A,B]) for(let i=0;i<P.length;i++){
+    const p1=P[i],p2=P[(i+1)%P.length]; let nx=p2[1]-p1[1], ny=p1[0]-p2[0]; const L=Math.hypot(nx,ny)||1; nx/=L; ny/=L;
+    let a0=Infinity,a1=-Infinity,b0=Infinity,b1=-Infinity;
+    A.forEach(q=>{const d=q[0]*nx+q[1]*ny; a0=Math.min(a0,d); a1=Math.max(a1,d);});
+    B.forEach(q=>{const d=q[0]*nx+q[1]*ny; b0=Math.min(b0,d); b1=Math.max(b1,d);});
+    if(Math.min(a1,b1)-Math.max(a0,b0) <= 0.3) return false;
+  }
+  return true;
+}
+
+/* ---------- State ---------- */
+const LS_KEY = "fp1508.current.v1";
+let state = { name:"", items:[], layoutId:null, dirty:false, example:false };
+let sel = null, tab = "add";
+let status = {}; // id -> {level, why[]}
+
+function mkItem(name,w,d,kind,shape="rect",x=80,y=250,rot=0){ return {id:uid(),name,w:+w,d:shape==="round"?+w:+d,kind,shape,x,y,rot}; }
+function loadExample(){ state = {name:EXAMPLE.name, items:EXAMPLE.items.map(a=>mkItem(...a)), layoutId:null, dirty:false, example:true}; }
+function persistLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function restoreLocal(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(s && Array.isArray(s.items)){ state = Object.assign({name:"",items:[],layoutId:null,dirty:false,example:false}, s); return true; } }catch(e){} return false; }
+function touch(){ state.dirty = true; persistLocal(); }
+
+/* ---------- Static plan drawing ---------- */
+function drawPlan(){
+  let h = "";
+  for(let gx=12; gx<289; gx+=12) h += `<line class="p-grid" x1="${gx}" y1="0" x2="${gx}" y2="394"/>`;
+  for(let gy=12; gy<394; gy+=12) h += `<line class="p-grid" x1="0" y1="${gy}" x2="289" y2="${gy}"/>`;
+  h = `<defs><clipPath id="floorClip">${FLOORS.map(p=>`<polygon points="${ptsAttr(p)}"/>`).join("")}</clipPath></defs>`
+    + `<polygon class="p-wall" points="${ptsAttr(OUTER)}"/>`
+    + FLOORS.map(p=>`<polygon class="p-floor" points="${ptsAttr(p)}"/>`).join("")
+    + `<g clip-path="url(#floorClip)">${h}</g>`;
+  CLOSETS.forEach(c=>{ h += `<rect class="p-closet" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}"/><text class="p-clo" x="${c.x+c.w/2}" y="${c.y+c.h/2+1.5}">${c.t}</text>`; });
+  FIXTURES.forEach(f=>{
+    if(f.kind==="wall"){ h += `<rect class="p-wall" x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}"/>`; return; }
+    h += `<rect class="p-fix" x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="${f.kind==="tub"?3:0.5}"/>`;
+  });
+  // fixture details
+  [[14,13],[24,13],[14,23],[24,23]].forEach(([cx,cy])=> h += `<circle class="p-fixline" cx="${cx}" cy="${cy}" r="3.4"/>`);
+  h += `<rect class="p-fixline" x="30" y="96" width="22" height="17" rx="2"/>`;
+  h += `<ellipse class="p-fixline" cx="218" cy="25" rx="7" ry="9"/><ellipse class="p-fixline" cx="243" cy="18" rx="7" ry="5"/><rect class="p-fixline" x="257" y="40" width="22" height="50" rx="9"/>`;
+  WINDOWS.forEach(([a,b])=> h += `<line class="p-win" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`);
+  DOORS.forEach(d=>{
+    const pt=a=>[d.hx+d.r*Math.cos(a*Math.PI/180), d.hy+d.r*Math.sin(a*Math.PI/180)];
+    const cl=pt(d.c), op=pt(d.o);
+    h += `<path class="p-door" d="M${cl[0]} ${cl[1]} A${d.r} ${d.r} 0 0 ${d.o>d.c?1:0} ${op[0]} ${op[1]}"/><line class="p-leaf" x1="${d.hx}" y1="${d.hy}" x2="${op[0]}" y2="${op[1]}"/>`;
+  });
+  h += `<text class="p-room" x="52" y="68">KITCHEN</text><text class="p-room" x="122" y="62" style="font-size:5px">ENTRY</text>`;
+  h += `<text class="p-room" x="80" y="208">LIVING</text>`;
+  h += `<text class="p-room" x="205" y="212">BEDROOM</text>`;
+  h += `<text class="p-room" x="232" y="76" style="font-size:5px">BATH</text>`;
+  $("#gPlan").innerHTML = h;
+  // legend
+  $("#legend").innerHTML = ["sleep","sit","surface","storage","rug"].map(k=>`<span><i class="sw" style="background:var(--k-${k})"></i>${KINDS[k]}</span>`).join("");
+}
+
+/* ---------- Dimensions ---------- */
+// Printed on the developer plan (exterior / overall), in inches.
+const PLAN_DIMS = [
+  {t:"h", a:0, b:289, at:-14, label:`24'-1"`},
+  {t:"v", a:0, b:394, at:-14, label:`32'-9½"`},
+  {t:"h", a:0, b:126, at:406, label:`10'-6"`},
+  {t:"d", p:[126,394], q:[158.5,361.5], off:10, label:`3'-10"`},
+  {t:"h", a:158.5, b:289, at:374, label:`10'-10½"`},
+  {t:"v", a:0, b:77.5, at:303, label:`6'-5½"`},
+  {t:"v", a:77.5, b:96, at:303, label:`1'-6½"`, small:true},
+  {t:"v", a:96, b:361.5, at:303, label:`22'-1½"`},
+];
+// Estimated clear (inside-wall) spans, derived from the plan. ±3" in rooms, rougher elsewhere.
+const EST_DIMS = [
+  {t:"h", a:6, b:153.5, at:127, room:"Living room", what:"Width, wall to wall"},
+  {t:"v", a:118, b:388, at:128, lab:150, room:"Living room", what:"Length, counter to window wall"},
+  {t:"h", a:158.5, b:283, at:196, room:"Bedroom", what:"Width, wall to wall"},
+  {t:"v", a:157, b:355.5, at:193, room:"Bedroom", what:"Length, door wall to window wall"},
+  {t:"v", a:31, b:92, at:84, room:"Kitchen", what:"Aisle between counters"},
+  {t:"h", a:6, b:99, at:42, room:"Kitchen", what:"Back counter run"},
+  {t:"h", a:103, b:148, at:84, room:"Entry", what:"Width"},
+  {t:"v", a:118, b:153, at:180, room:"Hall", what:"Width outside bedroom"},
+  {t:"h", a:170, b:203, at:165, room:"Bedroom", what:"Door opening"},
+];
+let showDims = true; try{ showDims = localStorage.getItem("fp1508.dims") !== "0"; }catch(e){}
+function tick(x,y,cls){ return `<line class="${cls}" x1="${x-1.6}" y1="${y+1.6}" x2="${x+1.6}" y2="${y-1.6}"/>`; }
+function drawDims(){
+  if(!showDims){ $("#gDims").innerHTML=""; return; }
+  let h="";
+  PLAN_DIMS.forEach(d=>{
+    if(d.t==="h"){ const m=(d.a+d.b)/2; h += `<line class="d-line" x1="${d.a}" y1="${d.at}" x2="${d.b}" y2="${d.at}"/>${tick(d.a,d.at,"d-tick")}${tick(d.b,d.at,"d-tick")}<text class="d-txt" x="${m}" y="${d.at-1.8}">${d.label}</text>`; }
+    else if(d.t==="v"){ const m=(d.a+d.b)/2, tx = d.at<0 ? d.at-1.8 : d.at+1.8; const rot = d.at<0 ? -90 : 90;
+      h += `<line class="d-line" x1="${d.at}" y1="${d.a}" x2="${d.at}" y2="${d.b}"/>${tick(d.at,d.a,"d-tick")}${tick(d.at,d.b,"d-tick")}<text class="d-txt" transform="translate(${tx} ${m}) rotate(${rot})" ${d.small?'style="font-size:3.8px"':''}>${d.label}</text>`; }
+    else { const nx=Math.SQRT1_2, ny=Math.SQRT1_2, o=d.off; const p=[d.p[0]+nx*o,d.p[1]+ny*o], q=[d.q[0]+nx*o,d.q[1]+ny*o]; const m=[(p[0]+q[0])/2+nx*2.4,(p[1]+q[1])/2+ny*2.4];
+      h += `<line class="d-line" x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"/>${tick(p[0],p[1],"d-tick")}${tick(q[0],q[1],"d-tick")}<text class="d-txt" transform="translate(${m[0]} ${m[1]}) rotate(-45)" dominant-baseline="central">${d.label}</text>`; }
+  });
+  EST_DIMS.forEach(d=>{
+    const L = fmt(d.b-d.a), m = d.lab ?? (d.a+d.b)/2;
+    if(d.t==="h") h += `<line class="d-est" x1="${d.a}" y1="${d.at}" x2="${d.b}" y2="${d.at}"/>${tick(d.a,d.at,"d-est-tick")}${tick(d.b,d.at,"d-est-tick")}<text class="d-est-txt" x="${m}" y="${d.at}">≈${L}</text>`;
+    else h += `<line class="d-est" x1="${d.at}" y1="${d.a}" x2="${d.at}" y2="${d.b}"/>${tick(d.at,d.a,"d-est-tick")}${tick(d.at,d.b,"d-est-tick")}<text class="d-est-txt" transform="translate(${d.at} ${m}) rotate(-90)">≈${L}</text>`;
+  });
+  $("#gDims").innerHTML = h;
+}
+function setDims(on){ showDims=on; try{ localStorage.setItem("fp1508.dims", on?"1":"0"); }catch(e){} $("#dimBtn").setAttribute("aria-pressed", on); drawDims(); }
+$("#dimBtn").onclick = ()=>setDims(!showDims);
+function roomSizesHTML(){
+  const groups = {}; EST_DIMS.forEach(d=>{ (groups[d.room] ||= []).push(d); });
+  return `<div class="sizes">` + Object.entries(groups).map(([room,list])=>`<span class="grp">${room}</span>` + list.map(d=>`<span>${d.what}</span><span>≈${fmt(d.b-d.a)}</span>`).join("")).join("")
+    + `<span class="grp">From the plan (outside walls)</span>`
+    + `<span>Unit width</span><span>24'-1"</span><span>Unit depth</span><span>32'-9½"</span><span>Living room window wall</span><span>10'-6"</span><span>Bay window (angled)</span><span>3'-10"</span><span>Bedroom window wall</span><span>10'-10½"</span><span>Bedroom side, right wall</span><span>22'-1½"</span><span>Bath, right wall</span><span>6'-5½"</span>`
+    + `</div>`;
+}
+
+/* ---------- Evaluate fit ---------- */
+function evaluate(){
+  status = {};
+  const P = {}; state.items.forEach(it=>{ P[it.id]=poly(it); status[it.id]={level:"ok",why:[]}; });
+  state.items.forEach(it=>{
+    const S = samples(it);
+    if(S.some(p=>!isFloor(p[0],p[1]))) status[it.id].why.push("Runs into a wall, counter or closet");
+    if(it.kind!=="rug"){
+      const hits = DOORS.filter((d,i)=> S.some(p=>inPoly(p,DOOR_POLYS[i])));
+      hits.forEach(d=>status[it.id].why.push(`Blocks the ${d.name} swing`));
+    }
+  });
+  const solid = state.items.filter(i=>i.kind!=="rug");
+  for(let i=0;i<solid.length;i++) for(let j=i+1;j<solid.length;j++){
+    const a=solid[i], b=solid[j];
+    if(overlap(P[a.id],P[b.id])){ status[a.id].why.push(`Overlaps ${b.name}`); status[b.id].why.push(`Overlaps ${a.name}`); }
+  }
+  Object.values(status).forEach(s=>{ s.level = s.why.some(w=>!/swing/.test(w)) ? "bad" : (s.why.length ? "warn" : "ok"); });
+  return P;
+}
+
+/* ---------- Render ---------- */
+let polys = {};
+function itemSVG(it){
+  const st = status[it.id]?.level || "ok";
+  const ext = (it.shape==="round") ? [it.w,it.w] : (()=>{ const a=Math.abs(Math.sin(it.rot*Math.PI/180)); return a>0.7?[it.d,it.w]:[it.w,it.d]; })();
+  const fs = Math.max(2.6, Math.min(7, ext[0]/(Math.max(it.name.length,3)*0.56), ext[1]/2.6));
+  const showDims = ext[1] >= 13 && ext[0] >= 18;
+  const dimTxt = it.shape==="round" ? `${fmt(it.w)} ⌀` : `${fmt(it.w)} × ${fmt(it.d)}`;
+  const dfs = Math.max(2.4, Math.min(fs*0.78, ext[0]/(dimTxt.length*0.62)));
+  const shape = it.shape==="round"
+    ? `<circle class="k-${it.kind}" cx="0" cy="0" r="${it.w/2}"/>`
+    : `<g transform="rotate(${it.rot})"><rect class="k-${it.kind}" x="${-it.w/2}" y="${-it.d/2}" width="${it.w}" height="${it.d}" rx="${it.kind==="rug"?0.5:1.6}"/></g>`;
+  const rugTop = it.kind==="rug" ? -ext[1]/2 + fs*1.1 + (showDims?0:0) : 0;
+  const ty = rugTop + (showDims ? -dfs*0.6 : 0);
+  return `<g class="it ${st==="ok"?"":st}" data-id="${it.id}" transform="translate(${it.x} ${it.y})">${shape}`
+    + `<text class="nm" y="${ty}" style="font-size:${fs.toFixed(2)}px">${esc(it.name)}</text>`
+    + (showDims ? `<text class="dm" y="${(rugTop+fs*0.65).toFixed(2)}" style="font-size:${dfs.toFixed(2)}px">${dimTxt}</text>` : "") + `</g>`;
+}
+function rays(it){
+  const P = polys[it.id]; let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  P.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
+  const others = state.items.filter(o=>o.id!==it.id && o.kind!=="rug" && it.kind!=="rug").map(o=>polys[o.id]);
+  const cx=(x0+x1)/2, cy=(y0+y1)/2; let h="";
+  [[x1,cy,1,0],[x0,cy,-1,0],[cx,y1,0,1],[cx,y0,0,-1]].forEach(([sx,sy,dx,dy])=>{
+    if(!isFloor(sx+dx*0.8, sy+dy*0.8)) return;
+    let d=0.5; for(; d<420; d+=0.5){ const px=sx+dx*d, py=sy+dy*d; if(!isFloor(px,py) || others.some(o=>inPoly([px,py],o))) break; }
+    d -= 0.5; if(d < 1) return;
+    const ex=sx+dx*d, ey=sy+dy*d, mx=(sx+ex)/2, my=(sy+ey)/2, cap=2.2;
+    h += `<line class="ray" x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}"/>`
+      + (dx ? `<line class="ray-cap" x1="${ex}" y1="${ey-cap}" x2="${ex}" y2="${ey+cap}"/>` : `<line class="ray-cap" x1="${ex-cap}" y1="${ey}" x2="${ex+cap}" y2="${ey}"/>`)
+      + `<text class="ray-lbl" x="${mx}" y="${my + (dx? -3.2 : 0)}" ${dy? `dx="${(fmt(d).length*1.6+3).toFixed(1)}"`:""}>${fmt(d)}</text>`;
+  });
+  return h;
+}
+function render(){
+  polys = evaluate();
+  $("#gRugs").innerHTML = state.items.filter(i=>i.kind==="rug").map(itemSVG).join("");
+  $("#gItems").innerHTML = state.items.filter(i=>i.kind!=="rug").map(itemSVG).join("");
+  const it = state.items.find(i=>i.id===sel);
+  $("#gOver").innerHTML = it ? `<polygon class="sel-outline" points="${ptsAttr(polys[it.id])}"/>` + rays(it) : "";
+  // summary
+  const bad = Object.values(status).filter(s=>s.level==="bad").length, warn = Object.values(status).filter(s=>s.level==="warn").length;
+  const chip = $("#summary");
+  chip.className = "chip " + (bad?"bad":warn?"warn":"ok");
+  chip.textContent = bad ? `${bad} conflict${bad>1?"s":""}` : warn ? `${warn} in a door swing` : (state.items.length ? "All clear" : "Empty");
+  $("#sub").textContent = `${state.name || "Untitled layout"}${state.dirty && state.layoutId ? " · unsaved changes" : ""} · ${state.items.length} piece${state.items.length===1?"":"s"}`;
+  renderPieceTab();
+}
+
+/* ---------- View: pan / zoom ---------- */
+const svg = $("#plan"); let vb = {...BOUNDS};
+function applyVB(){ svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
+function fit(){
+  const r = svg.getBoundingClientRect(); if(!r.width||!r.height) return false; const a = r.height/r.width;
+  let w=BOUNDS.w, h=BOUNDS.h; if(h/w > a) w = h/a; else h = w*a;
+  vb = {x:BOUNDS.x+BOUNDS.w/2-w/2, y:BOUNDS.y+BOUNDS.h/2-h/2, w, h}; applyVB(); return true;
+}
+function reaspect(){ const r=svg.getBoundingClientRect(); if(!r.width||!r.height) return; const cx=vb.x+vb.w/2, cy=vb.y+vb.h/2; const h=vb.w*r.height/r.width; vb={x:vb.x,y:cy-h/2,w:vb.w,h}; applyVB(); }
+function toSvg(cx,cy){ const r=svg.getBoundingClientRect(); return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h]; }
+function zoomAt(f, cx, cy){
+  const r=svg.getBoundingClientRect(); if(cx==null){cx=r.left+r.width/2; cy=r.top+r.height/2;}
+  const [px,py]=toSvg(cx,cy); const nw = Math.max(40, Math.min(900, vb.w*f)); const k=nw/vb.w;
+  vb = {x:px-(px-vb.x)*k, y:py-(py-vb.y)*k, w:nw, h:vb.h*k}; applyVB();
+}
+const onSize=()=>{ if(!svg.dataset.fitted){ if(fit()) svg.dataset.fitted="1"; } else reaspect(); };
+if(window.ResizeObserver) new ResizeObserver(onSize).observe(svg); window.addEventListener("resize", onSize); requestAnimationFrame(onSize);
+$("#zIn").onclick=()=>zoomAt(1/1.3); $("#zOut").onclick=()=>zoomAt(1.3); $("#zFit").onclick=fit;
+svg.addEventListener("wheel", e=>{ e.preventDefault(); zoomAt(Math.exp(e.deltaY*0.0015), e.clientX, e.clientY); }, {passive:false});
+
+const pointers = new Map(); let drag=null, pan=null, pinch=null;
+svg.addEventListener("pointerdown", e=>{
+  svg.setPointerCapture(e.pointerId); pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2){ drag=null; const [a,b]=[...pointers.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), vb:{...vb}, mid:toSvg((a.x+b.x)/2,(a.y+b.y)/2)}; pan=null; return; }
+  const g = e.target.closest && e.target.closest(".it");
+  if(g){ const it = state.items.find(i=>i.id===g.dataset.id); const [px,py]=toSvg(e.clientX,e.clientY);
+    drag={id:it.id, ox:px-it.x, oy:py-it.y, moved:false, sx:e.clientX, sy:e.clientY}; if(sel!==it.id){ sel=it.id; render(); } }
+  else pan={sx:e.clientX, sy:e.clientY, vb:{...vb}, moved:false};
+});
+svg.addEventListener("pointermove", e=>{
+  if(!pointers.has(e.pointerId)) return; pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch && pointers.size>=2){ const [a,b]=[...pointers.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y)||1; const k=Math.max(40,Math.min(900,pinch.vb.w*pinch.d/d))/pinch.vb.w;
+    const r=svg.getBoundingClientRect(); const mx=((a.x+b.x)/2-r.left)/r.width, my=((a.y+b.y)/2-r.top)/r.height;
+    const w=pinch.vb.w*k, h=pinch.vb.h*k; vb={x:pinch.mid[0]-mx*w, y:pinch.mid[1]-my*h, w, h}; applyVB(); return; }
+  if(drag){ if(!drag.moved && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<3) return; drag.moved=true;
+    const it=state.items.find(i=>i.id===drag.id); const [px,py]=toSvg(e.clientX,e.clientY); it.x=r05(px-drag.ox); it.y=r05(py-drag.oy); render(); return; }
+  if(pan){ const r=svg.getBoundingClientRect(); const dx=e.clientX-pan.sx, dy=e.clientY-pan.sy; if(Math.hypot(dx,dy)>3) pan.moved=true;
+    vb={...vb, x:pan.vb.x-dx/r.width*vb.w, y:pan.vb.y-dy/r.height*vb.h}; applyVB(); }
+});
+function endPtr(e){
+  pointers.delete(e.pointerId);
+  if(pinch){ if(pointers.size<2) pinch=null; pan=null; return; }
+  if(drag){ if(drag.moved){ touch(); } else { showTab("piece"); } drag=null; render(); }
+  if(pan){ if(!pan.moved && sel){ sel=null; render(); } pan=null; }
+}
+svg.addEventListener("pointerup", endPtr); svg.addEventListener("pointercancel", endPtr);
+document.addEventListener("keydown", e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
+  const it = state.items.find(i=>i.id===sel); if(!it) return;
+  const st = e.shiftKey?6:1; const mv = {ArrowLeft:[-st,0],ArrowRight:[st,0],ArrowUp:[0,-st],ArrowDown:[0,st]}[e.key];
+  if(mv){ e.preventDefault(); it.x+=mv[0]; it.y+=mv[1]; touch(); render(); }
+  else if(e.key==="r"||e.key==="R"){ rotateSel(e.shiftKey?-90:90); }
+  else if(e.key==="Delete"||e.key==="Backspace"){ deleteSel(); }
+});
+
+/* ---------- Tabs / panel ---------- */
+function showTab(t){
+  tab=t; ["add","piece","lay"].forEach(k=>{ $("#p-"+k).hidden = k!==t; });
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===t));
+}
+document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=>showTab(b.dataset.tab));
+
+
+/* ---------- Add tab ---------- */
+function placeNew(it){
+  const [cx,cy] = [vb.x+vb.w/2, vb.y+vb.h/2];
+  it.x = r05(cx); it.y = r05(cy);
+  if(!isFloor(it.x,it.y)){ it.x=80; it.y=250; }
+  state.items.push(it); sel=it.id; touch(); render(); showTab("piece");
+}
+$("#presetWrap").innerHTML = PRESETS.map(([g,list],gi)=>`<h3>${g}</h3><div class="presets">${list.map((p,i)=>`<button class="preset" data-p="${gi}.${i}"><b><i style="background:var(--k-${p[3]})"></i>${esc(p[0])}</b><small>${p[4]==="round"?fmt(p[1])+" ⌀":fmt(p[1])+" × "+fmt(p[2])}</small></button>`).join("")}</div>`).join("");
+$("#presetWrap").addEventListener("click", e=>{ const b=e.target.closest(".preset"); if(!b) return; const [g,i]=b.dataset.p.split(".").map(Number); const p=PRESETS[g][1][i]; placeNew(mkItem(p[0],p[1],p[2],p[3],p[4]||"rect")); });
+$("#cShape").onchange = ()=>{ const r=$("#cShape").value==="round"; $("#cD").disabled=r; $("label[for=cW]").textContent = r?"Diameter":"Width"; };
+$("#cAdd").onclick = ()=>{
+  const shape=$("#cShape").value, w=parseLen($("#cW").value), d= shape==="round"? w : parseLen($("#cD").value);
+  if(!(w>0 && w<400) || !(d>0 && d<400)){ msg($("#cMsg"), "Enter both sizes, for example 84 or 7'0\".", "bad"); return; }
+  msg($("#cMsg"), "");
+  placeNew(mkItem(($("#cName").value.trim() || KINDS[$("#cKind").value]).slice(0,40), r05(w), r05(d), $("#cKind").value, shape));
+  $("#cName").value=""; $("#cW").value=""; $("#cD").value="";
+};
+
+/* ---------- Pieces tab ---------- */
+function rotateSel(deg){ const it=state.items.find(i=>i.id===sel); if(!it||it.shape==="round") return; it.rot = (((it.rot+deg)%360)+360)%360; if(it.rot>180) it.rot-=360; touch(); render(); }
+function deleteSel(){ const i=state.items.findIndex(x=>x.id===sel); if(i<0) return; state.items.splice(i,1); sel=null; touch(); render(); }
+function renderPieceTab(){
+  const it = state.items.find(i=>i.id===sel), wrap=$("#selWrap");
+  const active = document.activeElement && wrap.contains(document.activeElement) ? document.activeElement.id : null;
+  if(!it){ wrap.innerHTML = `<h3>Selected piece</h3><p class="hint">Tap a piece on the plan to move, rotate or resize it. Drag empty floor to pan; pinch or use the buttons to zoom. The teal lines show the gap to the nearest wall or piece.</p>`; }
+  else if(!active){
+    const s=status[it.id]; const cls = s.level==="bad"?"bad":s.level==="warn"?"warn":"ok";
+    const txt = s.why.length ? s.why.join(". ")+"." : "Fits. Nothing in the way.";
+    wrap.innerHTML = `<h3>Selected piece</h3>
+      <div class="status ${cls}">${esc(txt)}</div>
+      <div class="row">
+        <div class="field" style="flex:2"><label for="sName">Name</label><input id="sName" value="${esc(it.name)}"></div>
+        <div class="field"><label for="sKind">Type</label><select id="sKind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${k===it.kind?"selected":""}>${v}</option>`).join("")}</select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="sW">${it.shape==="round"?"Diameter":"Width"}</label><input id="sW" class="mono" value="${fmt(it.w)}"></div>
+        ${it.shape==="round"?"":`<div class="field"><label for="sD">Depth</label><input id="sD" class="mono" value="${fmt(it.d)}"></div>`}
+        <div class="field"><label for="sRot">Angle</label><input id="sRot" class="mono" value="${it.rot}°" ${it.shape==="round"?"disabled":""}></div>
+      </div>
+      <div class="btnrow">
+        ${it.shape==="round"?"":`<button class="btn" id="sR-90">⟲ 90°</button><button class="btn" id="sR-15">⟲ 15°</button><button class="btn" id="sR15">⟳ 15°</button><button class="btn" id="sR90">⟳ 90°</button>`}
+      </div>
+      <div class="btnrow"><button class="btn" id="sDup">Duplicate</button><button class="btn danger" id="sDel">Remove</button></div>`;
+    $("#sName").onchange = e=>{ it.name = e.target.value.trim().slice(0,40) || KINDS[it.kind]; touch(); render(); };
+    $("#sKind").onchange = e=>{ it.kind = e.target.value; touch(); render(); };
+    const sz = (id,key)=>{ const el=$(id); if(!el) return; el.onchange = ()=>{ const v=parseLen(el.value); if(v>0&&v<400){ it[key]=r05(v); if(it.shape==="round") it.d=it.w; touch(); } el.blur(); render(); }; };
+    sz("#sW","w"); sz("#sD","d");
+    const rotEl=$("#sRot"); rotEl.onchange=()=>{ const v=parseFloat(rotEl.value); if(!isNaN(v)){ it.rot=((v%360)+360)%360; if(it.rot>180) it.rot-=360; touch(); } rotEl.blur(); render(); };
+    [["#sR-90",-90],["#sR-15",-15],["#sR15",15],["#sR90",90]].forEach(([id,d])=>{ const b=$(id); if(b) b.onclick=()=>rotateSel(d); });
+    $("#sDup").onclick = ()=>{ const c={...it,id:uid(),x:it.x+12,y:it.y+12}; state.items.push(c); sel=c.id; touch(); render(); };
+    $("#sDel").onclick = deleteSel;
+  } else {
+    // keep inputs stable while typing; refresh status line only
+    const s=status[it.id], st=wrap.querySelector(".status"); if(st){ st.className="status "+(s.level==="bad"?"bad":s.level==="warn"?"warn":"ok"); st.textContent = s.why.length ? s.why.join(". ")+"." : "Fits. Nothing in the way."; }
+  }
+  const list=$("#pieceList");
+  list.innerHTML = state.items.length ? state.items.map(i=>`<div class="li ${i.id===sel?"current":""}" data-id="${i.id}" role="button" tabindex="0"><span class="dot ${status[i.id]?.level||"ok"}"></span><div class="meta"><b>${esc(i.name)}</b><small>${KINDS[i.kind]}</small></div><span class="dimtxt">${i.shape==="round"?fmt(i.w)+" ⌀":fmt(i.w)+" × "+fmt(i.d)}</span></div>`).join("") : `<div class="empty">No pieces yet. Add some from the Add tab.</div>`;
+}
+$("#pieceList").addEventListener("click", e=>{ const r=e.target.closest(".li[data-id]"); if(!r) return; sel=r.dataset.id; render(); });
+$("#pieceList").addEventListener("keydown", e=>{ if(e.key==="Enter"){ const r=e.target.closest(".li[data-id]"); if(r){ sel=r.dataset.id; render(); } } });
+
+/* ---------- Layouts (saved on this device) ---------- */
+const SAVED_KEY="fp1508.saved.v1";
+let saved=[];
+function loadSaved(){ try{ saved = JSON.parse(localStorage.getItem(SAVED_KEY)||"[]"); if(!Array.isArray(saved)) saved=[]; }catch(e){ saved=[]; } saved.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)); }
+function storeSaved(){ try{ localStorage.setItem(SAVED_KEY, JSON.stringify(saved)); return true; }catch(e){ return false; } }
+const lName=$("#lName");
+function syncNameField(){ if(document.activeElement!==lName) lName.value = state.name; }
+lName.oninput = ()=>{ state.name = lName.value.slice(0,60); touch(); $("#sub").textContent = `${state.name||"Untitled layout"} · ${state.items.length} pieces`; };
+function cleanItems(){ return state.items.map(({id,name,w,d,kind,shape,x,y,rot})=>({id,name,w,d,kind,shape,x,y,rot})); }
+function renderSaved(){
+  const L=$("#savedList");
+  if(!saved.length){ L.innerHTML = `<div class="empty">Nothing saved on this device yet. Name this layout above and tap Save. To get a layout to someone else, use Send layout link below.</div>`; return; }
+  L.innerHTML = saved.map(l=>`<div class="li ${l.id===state.layoutId?"current":""}"><div class="meta"><b>${esc(l.name||"Untitled")}</b><small>${(l.items||[]).length} pieces · ${ago(l.updatedAt||0)}</small></div>
+      <button class="btn" data-load="${l.id}">Open</button><button class="btn danger" data-del="${l.id}" aria-label="Delete ${esc(l.name||"layout")}">✕</button></div>`).join("");
+}
+$("#savedList").addEventListener("click", e=>{
+  const ld=e.target.closest("[data-load]"), dl=e.target.closest("[data-del]");
+  if(ld){ const l=saved.find(x=>x.id===ld.dataset.load); if(!l) return;
+    state = {name:l.name||"Untitled", items:(l.items||[]).map(i=>({...i, id:i.id||uid()})), layoutId:l.id, dirty:false, example:false}; sel=null; persistLocal(); syncNameField(); render(); renderSaved(); msg($("#lMsg"), `Opened “${l.name}”.`, "info"); }
+  if(dl){
+    if(!dl.classList.contains("armed")){ dl.classList.add("armed"); dl.textContent="Delete?"; setTimeout(()=>{ if(dl.isConnected){ dl.classList.remove("armed"); dl.textContent="✕"; } }, 3500); return; }
+    saved = saved.filter(x=>x.id!==dl.dataset.del); storeSaved(); if(state.layoutId===dl.dataset.del){ state.layoutId=null; persistLocal(); } renderSaved(); msg($("#lMsg"),"Deleted.","info");
+  }
+});
+function save(asNew){
+  const name = (state.name||"").trim() || `Layout ${new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"})}`;
+  state.name = name; syncNameField();
+  const id = (state.layoutId && !asNew && saved.some(x=>x.id===state.layoutId)) ? state.layoutId : uid();
+  const rec = {id, name, items:cleanItems(), updatedAt:Date.now()};
+  saved = [rec, ...saved.filter(x=>x.id!==id)];
+  if(!storeSaved()){ msg($("#lMsg"),"This browser won't let the page store layouts (private browsing can do this). Use Send layout link to keep a copy.","bad"); return; }
+  state.layoutId=id; state.dirty=false; state.example=false; persistLocal(); render(); renderSaved(); msg($("#lMsg"), `Saved “${name}” on this device.`, "ok");
+}
+$("#lSave").onclick=()=>save(false); $("#lSaveNew").onclick=()=>save(true);
+$("#lNew").onclick=()=>{ state={name:"",items:[],layoutId:null,dirty:false,example:false}; sel=null; persistLocal(); syncNameField(); render(); renderSaved(); msg($("#lMsg"),"Blank plan. Add pieces from the Add tab.","info"); };
+
+/* ---------- Share code ---------- */
+function encode(){ const o={n:state.name, i:state.items.map(i=>[i.name,i.w,i.d,i.kind,i.shape==="round"?1:0,i.x,i.y,i.rot])}; return "FP1:"+btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+function decode(s){ s=s.trim(); const h=s.indexOf("#l="); if(h>=0) s="FP1:"+decodeURIComponent(s.slice(h+3)); if(!s.startsWith("FP1:")) throw 0; const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(4).replace(/\s+/g,""))))); if(!Array.isArray(o.i)) throw 0;
+  return {name:String(o.n||"Shared layout").slice(0,60), items:o.i.map(a=>mkItem(String(a[0]).slice(0,40),+a[1],+a[2],KINDS[a[3]]?a[3]:"other",a[4]?"round":"rect",+a[5],+a[6],+a[7]||0))}; }
+function layoutLink(){ return location.origin + location.pathname + "#l=" + encodeURIComponent(encode().slice(4)); }
+$("#exCode").onclick = async ()=>{
+  const link=layoutLink();
+  if(navigator.share){ try{ await navigator.share({title:state.name||"Our layout", text:`${state.name||"Layout"} for Unit 1508`, url:link}); msg($("#xMsg"),"Link shared.","ok"); return; }catch(e){ if(e && e.name==="AbortError") return; } }
+  const code=link;
+  try{ await navigator.clipboard.writeText(code); msg($("#xMsg"),"Link copied. Text it to her; it opens this exact layout.","ok"); }
+  catch(e){ $("#imCode").value=code; $("#imCode").focus(); $("#imCode").select(); msg($("#xMsg"),"Copying was blocked. The link is selected in the box above; copy it from there.","warn"); }
+};
+$("#imBtn").onclick = ()=>{
+  try{ const L=decode($("#imCode").value); state={name:L.name,items:L.items,layoutId:null,dirty:true,example:false}; sel=null; persistLocal(); syncNameField(); render(); renderSaved(); fit(); msg($("#xMsg"),`Opened “${L.name}” with ${L.items.length} pieces.`,"ok"); $("#imCode").value=""; }
+  catch(e){ msg($("#xMsg"),"That link didn't read correctly. Copy the whole link and try again.","bad"); }
+};
+
+/* ---------- Image export ---------- */
+const EXPORT_CSS = `
+.p-wall{fill:#2a302d}.p-floor{fill:#f7f6f0}.p-closet{fill:#d6d9d2}.p-fix{fill:#c5cbc4;stroke:#5b6561;stroke-width:.4}.p-fixline{fill:none;stroke:#5b6561;stroke-width:.5}
+.p-grid{stroke:#e7e6dd;stroke-width:.35}.p-door{fill:none;stroke:#7b8580;stroke-width:.6;stroke-dasharray:2 1.6}.p-leaf{stroke:#7b8580;stroke-width:1.2}.p-win{stroke:#7fa7b8;stroke-width:1.6}
+text{font-family:Helvetica,Arial,sans-serif}.p-room{font-weight:700;font-size:7px;letter-spacing:.12em;fill:#5b6561;text-anchor:middle}.p-dim,.p-clo{font-size:4.5px;fill:#5b6561;text-anchor:middle}
+.it rect,.it circle{stroke:#1c2220;stroke-opacity:.55;stroke-width:.6}.k-sleep{fill:#9db3cf}.k-sit{fill:#ddb084}.k-surface{fill:#b1c294}.k-storage{fill:#c0abd0}.k-other{fill:#c0c0b5}.k-rug{fill:#ebe2cd;stroke-dasharray:2 1.2}
+.it .nm{font-weight:700;fill:#1c2220;text-anchor:middle;dominant-baseline:central}.it .dm{fill:#1c2220;fill-opacity:.8;text-anchor:middle;dominant-baseline:central}
+.it.bad rect,.it.bad circle{stroke:#c0352a;stroke-width:1.4;stroke-opacity:1}.it.warn rect,.it.warn circle{stroke:#a86b12;stroke-width:1.2;stroke-opacity:1}
+.d-line{stroke:#1c2220;stroke-width:.45}.d-tick{stroke:#1c2220;stroke-width:.8}.d-txt{font-size:5px;fill:#1c2220;text-anchor:middle}
+.d-est{stroke:#8a4f1c;stroke-width:.45;stroke-dasharray:1.6 1.2}.d-est-tick{stroke:#8a4f1c;stroke-width:.8}.d-est-txt{font-size:4.4px;fill:#8a4f1c;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#ffffff;stroke-width:2px}
+.hd{font-size:9px;font-weight:700;fill:#1c2220}.sm{font-size:4.6px;fill:#5b6561}.ln{font-size:4.8px;fill:#1c2220}.lnb{font-size:4.8px;fill:#c0352a}`;
+function buildExportSVG(){
+  const B=BOUNDS, top=22, rowH=7.2, cols=2;
+  const rows = Math.ceil(state.items.length/cols);
+  const X0=B.x, Y0=B.y-top, W=B.w, H=top+B.h+6+rows*rowH+8;
+  let list=""; state.items.forEach((it,i)=>{ const c=i%cols, r=Math.floor(i/cols); const s=status[it.id]; const x=X0+8+c*(W/2), y=B.y+B.h+8+r*rowH;
+    list += `<text class="${s.level==="bad"?"lnb":"ln"}" x="${x}" y="${y}">${esc(it.name)}  ${it.shape==="round"?fmt(it.w)+" ⌀":fmt(it.w)+" × "+fmt(it.d)}${s.level!=="ok"?"  (check fit)":""}</text>`; });
+  const date = new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${X0} ${Y0} ${W} ${H}" width="${W*4}" height="${H*4}"><style>${EXPORT_CSS}</style>
+    <rect x="${X0}" y="${Y0}" width="${W}" height="${H}" fill="#ffffff"/>
+    <text class="hd" x="${X0+8}" y="${Y0+10}">${esc(state.name||"Untitled layout")}</text>
+    <text class="sm" x="${X0+8}" y="${Y0+18}">Unit 1508 · 1 2nd St, Jersey City · ${date} · grid = 1 ft${showDims?" · solid = plan dims, dashed ≈ est. clear space":""}</text>
+    ${$("#gPlan").innerHTML}${$("#gRugs").innerHTML}${$("#gItems").innerHTML}${$("#gDims").innerHTML}${list}</svg>`;
+}
+$("#exImg").onclick = async ()=>{
+  const b=$("#exImg"); b.disabled=true; msg($("#xMsg"),"");
+  try{
+    const svgStr = buildExportSVG(); const img = new Image();
+    await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svgStr); });
+    const c=document.createElement("canvas"); c.width=img.width; c.height=img.height; const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0);
+    const blob = await new Promise(r=>c.toBlob(r,"image/png"));
+    const fname = `${(state.name||"layout").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").toLowerCase()||"layout"}-unit-1508.png`;
+    const file = new File([blob], fname, {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:state.name||"Layout"}); return; }catch(e){ if(e && e.name==="AbortError") return; } }
+    const url = URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000); msg($("#xMsg"),"Image downloaded.","ok");
+  }catch(e){ msg($("#xMsg"),"Couldn't draw the image. Try again.","bad"); }
+  finally{ b.disabled=false; }
+};
+function showImageModal(src){
+  $("#modalCard").innerHTML = `<h3>Plan image</h3><p class="hint">Press and hold the image (or right-click) to save or share it.</p><img alt="Floor plan with furniture" src="${src}"><div class="btnrow"><button class="btn primary" id="mClose">Done</button></div>`;
+  $("#modal").hidden=false; $("#mClose").onclick=()=>{$("#modal").hidden=true;};
+}
+$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") $("#modal").hidden=true; });
+
+/* ---------- Info ---------- */
+$("#infoBtn").onclick = ()=>{
+  $("#modalCard").innerHTML = `<h3>How accurate is this?</h3>
+  <p class="hint">Walls, closets, counters and doors are traced from the developer's 1/8" = 1'-0" plan using its printed dimensions (24'-1" overall width, 32'-9½" depth, 10'-6" and 10'-10½" window walls). Wall thickness isn't printed, so room sizes are estimates.</p>
+  <p class="hint"><b>Confidence:</b> living room and bedroom clear sizes are likely within ±3". Kitchen, bath and closet outlines are rougher. Anything the gap lines show as tighter than about 4" deserves a tape measure before you buy.</p>
+  <p class="hint">Solid dimension lines around the outside are copied from the plan. Dashed ones marked ≈ are estimated clear space inside the walls. The ruler button shows or hides them.</p>
+  <p class="hint">Red outline: hits a wall, counter, closet or another piece. Amber: sits in a door swing. Rugs can go under other pieces.</p>
+  <div class="btnrow"><button class="btn primary" id="mClose">Got it</button></div>`;
+  $("#modal").hidden=false; $("#mClose").onclick=()=>{$("#modal").hidden=true;};
+};
+
+/* ---------- Boot ---------- */
+drawPlan(); setDims(showDims); $("#roomSizes").innerHTML = roomSizesHTML();
+loadSaved();
+let fromLink=null; try{ if(location.hash.startsWith("#l=")) fromLink = decode(location.hash); }catch(e){}
+if(fromLink){ state={name:fromLink.name,items:fromLink.items,layoutId:null,dirty:true,example:false}; persistLocal(); try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+else if(!restoreLocal()) loadExample();
+syncNameField(); render(); renderSaved();
+if(fromLink){ showTab("lay"); msg($("#lMsg"), `Opened “${fromLink.name}” from a link. Tap Save to keep it on this device.`, "info"); }
+})();
+</script>
+
+</body>
+</html>
