@@ -242,6 +242,7 @@ textarea{font-family:var(--font-mono);font-size:12px;min-height:64px;resize:vert
     </div>
 
     <div class="pbody" id="p-lay" hidden>
+      <div class="section" id="aptWrap"></div>
       <div class="section">
         <h3>This layout</h3>
         <div class="row">
@@ -312,6 +313,8 @@ const DOOR_POLYS = DOORS.map(d => { const p=[[d.hx,d.hy]]; for(let a=Math.min(d.
 
 const KINDS = {sleep:"Bed",sit:"Seating",surface:"Table / desk",storage:"Storage",rug:"Rug",lamp:"Lamp",other:"Other"};
 const PRESETS = [
+  ["Our pieces",[["Corine sectional",120,38,"sit","sectional",{cl:120,cw:38,side:"right"}],["Amelie queen bed",67,89,"sleep"],["Amelie dresser",68,19,"storage"],["Amelie nightstand",30,19,"storage"],["LG 65\" TV",57,10,"other"]]],
+  ["Planned / considering",[["Point Cabrillo coffee tbl",40.7,40.7,"surface","round"],["Montebello 68\" console",68,19.4,"storage"],["Point Reyes dining table",59,35,"surface"]]],
   ["Bedroom",[["King bed",76,80,"sleep"],["Queen bed",60,80,"sleep"],["Full bed",54,75,"sleep"],["Nightstand",22,16,"storage"],["Dresser",60,20,"storage"],["Tall dresser",38,20,"storage"],["Bench",48,16,"sit"]]],
   ["Living",[["Sectional, chaise left",104,38,"sit","sectional",{cl:65,cw:36,side:"left"}],["Sectional, chaise right",104,38,"sit","sectional",{cl:65,cw:36,side:"right"}],["Sofa",84,38,"sit"],["Loveseat",62,36,"sit"],["Armchair",32,34,"sit"],["Coffee table",48,24,"surface"],["Side table",20,20,"surface"],["TV console",60,18,"storage"],["Bookshelf",34,13,"storage"]]],
   ["Rugs & lighting",[["Rug 8×10",120,96,"rug"],["Rug 5×8",96,60,"rug"],["Round rug 8'",96,96,"rug","round"],["Round rug 6'",72,72,"rug","round"],["Floor lamp",12,12,"lamp","round"],["Tripod lamp",24,24,"lamp","round"]]],
@@ -323,6 +326,33 @@ const EXAMPLE = { name:"Example layout", items:[
   ["Rug 5×8",96,60,"rug","rect",72,268,90],["Sofa",84,38,"sit","rect",25,268,90],["Coffee table",48,24,"surface","rect",68,268,90],
   ["TV console",60,18,"storage","rect",144.5,268,90],["Round table",42,42,"surface","round",62,168,0],["Armchair",32,34,"sit","rect",104,342,-45],
 ]};
+/* ---------- Our apartment: the live record of what's actually in Unit 1508 ----------
+   Kept in sync with the project tracker (claude/unit-1508-apartment-tracker.md). Bump `version` on every change
+   so phones holding an unedited older copy pick up the new one on next open. */
+const APT = {
+  version: "2026-11-20b", label: "Nov 20, 2026", name: "Our apartment",
+  note: "Real sizes of what we own. Placement follows the current plan until we confirm where things actually went.",
+  items: [
+    ["Corine sectional",120,38,"sit","sectional",66.5,324,180,{cl:120,cw:38,side:"right"}],
+    ["LG 65\" TV",57,10,"other","rect",148,305,90],
+    ["Amelie queen bed",67,89,"sleep","rect",238,270,90],
+    ["Amelie nightstand",30,19,"storage","rect",273,220.5,90],
+    ["Amelie dresser",68,19,"storage","rect",200,345.5,0],
+  ],
+  inventory: [
+    ["Corine 3-pc sectional, Natural","Delivered"],
+    ["Amelie queen bed","Delivered"],
+    ["Amelie dresser","Delivered"],
+    ["Amelie nightstand","Delivered"],
+    ["LG 65\" 7S TV","Owned"],
+    ["Waldorf Astoria queen mattress","Owned"],
+    ["5\" low-profile box spring","Ordered"],
+    ["Point Cabrillo coffee table","Planning to buy"],
+    ["Montebello 68\" console","Considering"],
+    ["Point Reyes dining set","Considering"],
+    ["Desk, Persian rug, floor lamp","Still needed"],
+  ],
+};
 
 /* ---------- Helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -421,6 +451,7 @@ function mkItem(name,w,d,kind,shape="rect",x=80,y=250,rot=0,extra){
   return it;
 }
 function loadExample(){ state = {name:EXAMPLE.name, items:EXAMPLE.items.map(a=>mkItem(...a)), layoutId:null, dirty:false, example:true}; }
+function loadApartment(){ state = {name:APT.name, items:APT.items.map(a=>mkItem(...a)), layoutId:null, dirty:false, example:false, apt:APT.version}; }
 function persistLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function restoreLocal(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(s && Array.isArray(s.items)){ state = Object.assign({name:"",items:[],layoutId:null,dirty:false,example:false}, s); return true; } }catch(e){} return false; }
 function touch(){ state.dirty = true; persistLocal(); }
@@ -771,6 +802,21 @@ function save(asNew){
 $("#lSave").onclick=()=>save(false); $("#lSaveNew").onclick=()=>save(true);
 $("#lNew").onclick=()=>{ state={name:"",items:[],layoutId:null,dirty:false,example:false}; sel=null; persistLocal(); syncNameField(); render(); renderSaved(); msg($("#lMsg"),"Blank plan. Add pieces from the Add tab.","info"); };
 
+/* ---------- Our apartment section ---------- */
+function renderApt(){
+  const onLatest = state.apt===APT.version;
+  $("#aptWrap").innerHTML = `<h3>Our apartment</h3>
+    <p class="hint">Updated ${esc(APT.label)}. ${esc(APT.note)}</p>
+    <div class="list">${APT.inventory.map(([n,s])=>`<div class="li"><div class="meta"><b>${esc(n)}</b><small>${esc(s)}</small></div></div>`).join("")}</div>
+    <div class="btnrow"><button class="btn ${onLatest?"":"primary"}" id="aptOpen">${onLatest?"Reset to latest":"Open latest"}</button></div>
+    <div id="aMsg"></div>`;
+  $("#aptOpen").onclick = e=>{
+    const b=e.currentTarget;
+    if(state.dirty && state.items.length && !b.classList.contains("armed")){ b.classList.add("armed"); b.textContent="Replace this plan?"; setTimeout(()=>{ if(b.isConnected){ b.classList.remove("armed"); b.textContent=state.apt===APT.version?"Reset to latest":"Open latest"; } }, 3500); return; }
+    loadApartment(); sel=null; persistLocal(); syncNameField(); render(); renderSaved(); renderApt(); fit(); msg($("#aMsg"), `Opened the ${APT.label} apartment layout.`, "ok");
+  };
+}
+
 /* ---------- Share code ---------- */
 function encode(){ const o={n:state.name, i:state.items.map(i=>{ const a=[i.name,i.w,i.d,i.kind,i.shape==="round"?1:i.shape==="sectional"?2:0,i.x,i.y,i.rot]; if(i.shape==="sectional") a.push(i.cl,i.cw,i.side==="left"?"L":"R"); return a; })}; return "FP1:"+btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 function decode(s){ s=s.trim(); const h=s.indexOf("#l="); if(h>=0) s="FP1:"+decodeURIComponent(s.slice(h+3)); if(!s.startsWith("FP1:")) throw 0; const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(4).replace(/\s+/g,""))))); if(!Array.isArray(o.i)) throw 0;
@@ -849,8 +895,10 @@ drawPlan(); setDims(showDims); $("#roomSizes").innerHTML = roomSizesHTML();
 loadSaved();
 let fromLink=null; try{ if(location.hash.startsWith("#l=")) fromLink = decode(location.hash); }catch(e){}
 if(fromLink){ state={name:fromLink.name,items:fromLink.items,layoutId:null,dirty:true,example:false}; persistLocal(); try{ history.replaceState(null,"",location.pathname); }catch(e){} }
-else if(!restoreLocal()) loadExample();
-syncNameField(); render(); renderSaved();
+else if(!restoreLocal()) loadApartment();
+else if(!state.dirty && (state.example || (state.apt && state.apt!==APT.version))) { loadApartment(); persistLocal(); }
+syncNameField(); render(); renderSaved(); renderApt();
+if(!fromLink && state.apt!==APT.version && state.dirty && state.items.length){ msg($("#aMsg"), `The apartment layout was updated ${APT.label}. Tap Open latest to see it (your current plan is kept until you do).`, "info"); }
 if(fromLink){ showTab("lay"); msg($("#lMsg"), `Opened “${fromLink.name}” from a link. Tap Save to keep it on this device.`, "info"); }
 })();
 </script>
